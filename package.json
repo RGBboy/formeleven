@@ -19,5 +19,8 @@
     "@parcel/transformer-elm": "^2.3.2",
     "@parcel/transformer-webmanifest": "^2.3.2",
     "parcel": "^2.0.1"
+  },
+  "dependencies": {
+    "elm": "^0.19.1-5"
   }
 }
