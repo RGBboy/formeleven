@@ -6,10 +6,10 @@
   "license": "",
   "author": "",
   "scripts": {
-    "build": "npm run init && parcel build index.html 404.html",
+    "build": "npm run init && parcel build index.html 404.html terms.html",
     "clean-dist": "rm dist/*",
     "copy-files": "cp static/* dist",
-    "dev": "parcel index.html 404.html",
+    "dev": "parcel index.html 404.html terms.html",
     "init": "npm run clean-dist && npm run copy-files",
     "start": "npm run init && npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -209,7 +209,14 @@ formView model isSending =
           [ H.text "Subscribe with your email to receive advanced notification of product updates and events" ]
         , H.small
           [ A.class "f6 fw2"]
-          [ H.text "We don't send many emails and you can unsubscribe at any time." ]
+          [ H.text "We don't send many emails and you can unsubscribe at any time. More information can be found in our "
+          , H.a
+            [ A.class "link white underline dim"
+            , A.href "/terms#privacy"
+            ]
+            [ H.text "privacy policy" ]
+          , H.text "."
+          ]
         , H.div
           [ A.class "cf mt3" ]
           [ emailInputView model.email errors isSending
