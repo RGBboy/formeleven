@@ -206,7 +206,7 @@ formView model isSending =
         ]
         [ H.legend
           [ A.class "f5 f4-ns fw2 mb3 pa0"]
-          [ H.text "Subscribe with your email to receive advanced notification of product updates and events" ]
+          [ H.text "Join the mailing list to be the first to know about sales and product updates." ]
         , H.small
           [ A.class "f6 fw2"]
           [ H.text "We don't send many emails and you can unsubscribe at any time. More information can be found in our "
@@ -239,7 +239,7 @@ view model =
         Success ->
           H.p
             [ A.class "f5 f4-ns fw2 mb3 pa0"]
-            [ H.text "You've successfully subscribed to receive advanced notification of our product updates and events. Thanks!" ]
+            [ H.text "You've successfully subscribed to be the first to know about sales and product updates. Thanks!" ]
         Failure ->
           H.p
             [ A.class "f5 f4-ns fw2 mb3 pa0"]
@@ -256,6 +256,6 @@ view model =
       [ A.class "mw6 center" ]
       [ H.h2
         [ A.class "f2 fw2 mt4 mt5-ns mb4 bb b--silver" ]
-        [ H.text "Newsletter" ]
+        [ H.text "Mailing List" ]
       , child
       ]
