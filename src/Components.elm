@@ -1,0 +1,141 @@
+module Components exposing (..)
+
+import Html as H exposing (Attribute, Html)
+import Html.Attributes as A
+
+
+
+layout : List (Html msg) -> Html msg
+layout content =
+  body
+    [ header
+    , mainContent content
+    , footer
+    ]
+
+mainContent : List (Html msg) -> Html msg
+mainContent =
+  H.node "main" [ A.class "w-100 mw8 mb5 center" ]
+
+body : List (Html msg) -> Html msg
+body content =
+  H.node "body"
+    [ A.class "w-100 bg-white sans-serif dark-grey"
+    , A.style "font-family" "'Josefin Sans', sans-serif;"
+    ]
+    content
+
+header : Html msg
+header =
+  H.header [ A.class "w-100 mw8 center tc mv4" ]
+    [ H.img
+        [ A.class "h3 h4-l"
+        , A.src "img/logo-512x512.png"
+        ] []
+    , H.h1 [ A.class "f3 f2-l fw3 ttu" ]
+        [ H.text "Form "
+        , H.br [] []
+        , H.text "Eleven"
+        ]
+    , H.h2 [ A.class "mt2 mb0 f4 fw2" ] [ H.text "Combining digital fabrication, handmade ceramics and luminaires." ]
+    , H.p [ A.class "f5 fw2" ] [ H.text "Deptford, London, UK." ]
+    , H.div [ A.class "pv2 tc" ]
+        [ H.a
+            [ A.class "link hover-silver near-black dib h2 w2 mh2"
+            , A.href "https://www.instagram.com/formeleven/"
+            , A.title "Instagram"
+            ]
+            [ iconInstagram ]
+        ]
+    ]
+
+footer : Html msg
+footer =
+  H.footer [ A.class "w-100 bg-black white pt1 pb3 ph4 ph2-ns" ]
+    [ H.section [ A.id "newsletter" ] []
+    , H.section [ A.class "mw6 mv4 center" ]
+        [ H.h2 [ A.class "f2 fw2 mt4 mt5-ns mb4 bb b--silver" ] [ H.text "Get In Touch" ]
+        , H.div [ A.class "flex flex-wrap flex-row-reverse justify-center-ns justify-end" ]
+            [ H.div [ A.class "w-100 w-50-ns" ]
+                [ H.div [ A.class "pv2" ]
+                    [ H.a
+                        [ A.class "white f4 tl link dim dib"
+                        , A.href "mailto:hello@formeleven.com"
+                        ]
+                        [ H.text "hello@formeleven.com" ]
+                    , H.div [ A.class "pv2" ]
+                        [ H.a
+                          [ A.class "link hover-silver white dib h2 w2 mh2"
+                          , A.href "https://www.instagram.com/formeleven/"
+                          , A.title "Instagram"
+                          ]
+                          [ iconInstagram ]
+                        ]
+                    ]
+                ]
+            , H.article [ A.class "vcard w-100 w-50-ns pv2" ]
+                [ H.span [ A.class "adr f5" ]
+                    [ H.span [ A.class "street-address" ]
+                        [ H.span [ A.class "f4 db" ] [ H.text "Studio AR06" ]
+                        , H.span [ A.class "db" ] [ H.text "Second Floor Studios and Arts" ]
+                        , H.span [ A.class "db" ] [ H.text "Arbor House, Moulding Lane" ]
+                        ]
+                    , H.span [ A.class "postal-code db" ] [ H.text "SE14 6BS" ]
+                    , H.span [ A.class "db" ]
+                        [ H.span [ A.class "region" ] [ H.text "London" ]
+                        , H.text ", "
+                        , H.span [ A.class "country-name" ] [ H.text "UK" ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    , H.small [ A.class "f6 db tc-ns" ]
+        [ H.text "© 2022 "
+        , H.b [ A.class "ttu" ] [ H.text "Form Eleven" ]
+        , H.text " All Rights Reserved | "
+        , H.a
+            [ A.class "link white underline dim"
+            , A.href "/terms"
+            , A.title "Terms and Conditions"
+            ]
+            [ H.text "T&Cs"]
+        ]
+    ]
+
+-- TYPOGRAPHY
+
+h2 : List (Attribute msg) -> List (Html msg) -> Html msg
+h2 attributes =
+  A.class "f2 fw2 mh2 mt4 mt5-ns mb4 bb b--silver" :: attributes
+    |> H.h2
+
+h3 : List (Attribute msg) -> List (Html msg) -> Html msg
+h3 attributes =
+  A.class "f3 fw4 mh2 measure" :: attributes
+    |> H.h3
+
+h4 : List (Attribute msg) -> List (Html msg) -> Html msg
+h4 attributes =
+  A.class "f4 fw4 mh2 measure" :: attributes
+    |> H.h4
+
+p : String -> Html msg
+p content =
+  H.p [ A.class "f4 fw2 mh2 measure" ] [ H.text content ]
+
+ul : List (Html msg) -> Html msg
+ul =
+  H.ul [ A.class "f4 fw2 mh2 measure" ]
+
+li : String -> Html msg
+li content =
+  H.li [] [ H.text content ]
+
+-- ICONS
+-- Note: This is a bit of a hack that only works with static rendering.
+iconInstagram : Html msg
+iconInstagram =
+  H.text """
+<svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="1.414"><path d="M8 0C5.827 0 5.555.01 4.702.048 3.85.088 3.27.222 2.76.42c-.526.204-.973.478-1.417.923-.445.444-.72.89-.923 1.417-.198.51-.333 1.09-.372 1.942C.008 5.555 0 5.827 0 8s.01 2.445.048 3.298c.04.852.174 1.433.372 1.942.204.526.478.973.923 1.417.444.445.89.72 1.417.923.51.198 1.09.333 1.942.372.853.04 1.125.048 3.298.048s2.445-.01 3.298-.048c.852-.04 1.433-.174 1.942-.372.526-.204.973-.478 1.417-.923.445-.444.72-.89.923-1.417.198-.51.333-1.09.372-1.942.04-.853.048-1.125.048-3.298s-.01-2.445-.048-3.298c-.04-.852-.174-1.433-.372-1.942-.204-.526-.478-.973-.923-1.417-.444-.445-.89-.72-1.417-.923-.51-.198-1.09-.333-1.942-.372C10.445.008 10.173 0 8 0zm0 1.44c2.136 0 2.39.01 3.233.048.78.036 1.203.166 1.485.276.374.145.64.318.92.598.28.28.453.546.598.92.11.282.24.705.276 1.485.038.844.047 1.097.047 3.233s-.01 2.39-.048 3.233c-.036.78-.166 1.203-.276 1.485-.145.374-.318.64-.598.92-.28.28-.546.453-.92.598-.282.11-.705.24-1.485.276-.844.038-1.097.047-3.233.047s-2.39-.01-3.233-.048c-.78-.036-1.203-.166-1.485-.276-.374-.145-.64-.318-.92-.598-.28-.28-.453-.546-.598-.92-.11-.282-.24-.705-.276-1.485C1.45 10.39 1.44 10.136 1.44 8s.01-2.39.048-3.233c.036-.78.166-1.203.276-1.485.145-.374.318-.64.598-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276C5.61 1.45 5.864 1.44 8 1.44zm0 2.452c-2.27 0-4.108 1.84-4.108 4.108 0 2.27 1.84 4.108 4.108 4.108 2.27 0 4.108-1.84 4.108-4.108 0-2.27-1.84-4.108-4.108-4.108zm0 6.775c-1.473 0-2.667-1.194-2.667-2.667 0-1.473 1.194-2.667 2.667-2.667 1.473 0 2.667 1.194 2.667 2.667 0 1.473-1.194 2.667-2.667 2.667zm5.23-6.937c0 .53-.43.96-.96.96s-.96-.43-.96-.96.43-.96.96-.96.96.43.96.96z"/></svg>
+"""

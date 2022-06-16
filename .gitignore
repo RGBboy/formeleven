@@ -1,4 +1,6 @@
 .parcel-cache
-node_modules
+build/elm.js
+frontend/*.html
 dist
 elm-stuff
+node_modules

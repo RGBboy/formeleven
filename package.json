@@ -6,10 +6,13 @@
   "license": "",
   "author": "",
   "scripts": {
-    "build": "npm run init && parcel build index.html 404.html terms.html",
-    "clean-dist": "rm dist/*",
+    "build": "npm run init && npm run build-elm && npm run build-html && npm run build-frontend",
+    "build-elm": "elm make ./src/Build.elm --output /var/tmp/elm.js && sed \"s/'REPLACE_ME_WITH_JSON_STRINGIFY'/JSON.stringify(x)/g\" /var/tmp/elm.js > ./build/elm.js",
+    "build-frontend": "parcel build 'frontend/*.html'",
+    "build-html": "node build/index.js",
+    "clean-dist": "rm -rf dist/*",
     "copy-files": "cp static/* dist",
-    "dev": "parcel index.html 404.html terms.html index.js",
+    "dev": "parcel 'frontend/*.html'",
     "init": "npm run clean-dist && npm run copy-files",
     "start": "npm run init && npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
