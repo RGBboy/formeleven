@@ -6,7 +6,7 @@ import ElmHtml.ToString exposing (nodeToStringWithOptions, defaultFormatOptions)
 import Html exposing (Html)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Pages exposing (pages)
+import Pages
 import Platform
 
 asJsonString : Html msg -> String
@@ -24,13 +24,15 @@ encodePage : (String, Html msg) -> (String, Encode.Value)
 encodePage (path, page) =
   (path, htmlToString page |> Encode.string)
 
-encodedPages : Encode.Value
-encodedPages =
-  Encode.object (List.map encodePage pages)
+encodedPages : Pages.DataModel -> Encode.Value
+encodedPages data =
+  Pages.generate data
+    |> List.map encodePage
+    |> Encode.object
 
-init : () -> ( (), Cmd msg )
-init flags =
-  ((), htmlOut encodedPages )
+init : Pages.DataModel -> ( (), Cmd msg )
+init data =
+  ((), encodedPages data |> htmlOut )
 
 update : msg -> model -> ( model, Cmd msg )
 update _ model =

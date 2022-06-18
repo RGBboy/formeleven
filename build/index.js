@@ -1,7 +1,8 @@
 var path = require('path'),
     fs = require('fs'),
     template = require('./template'),
-    builder = require('./elm').Elm.Build.init(null),
+    data = require('./data').data,
+    builder = require('./elm').Elm.Build.init({ flags: data }),
     response = builder.ports.htmlOut;
 
 const render = ([key, value]) => {

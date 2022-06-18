@@ -1,11 +1,27 @@
-module Pages exposing (pages)
+module Pages exposing (DataModel, generate)
 
 import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
 
-pages : List (String, Html msg)
-pages =
+type alias DataModel =
+  { products : List Product
+  }
+
+type alias Product =
+  { id : String
+  , title: String
+  , description : String
+  , media : List Image
+  }
+
+type alias Image =
+  { alt: String
+  , url : String -- Ideally this should be type URL
+  }
+
+generate : DataModel -> List (String, Html msg)
+generate data =
   [ ("/", home)
   , ("/terms", terms)
   ]
