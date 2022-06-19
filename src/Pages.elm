@@ -44,9 +44,9 @@ productOverview product =
 productList : List Product -> Html msg
 productList products =
   let
-    productList = List.map productOverview products
+    productsView = List.map productOverview products
     pageTitle = C.h2 [] [ H.text "Products" ]
-    content = pageTitle :: productList
+    content = pageTitle :: productsView
   in
   C.layout
     [ H.section [] content ]
