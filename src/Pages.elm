@@ -5,51 +5,96 @@ import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
 
 type alias DataModel =
-  { products : List Product
+  { collection : ProductCollection
+  }
+
+type alias ProductCollection =
+  { id : String
+  , handle : String
+  , title : String
+  , descriptionHtml : String
+  , products : NodeList Product
   }
 
 type alias Product =
   { id : String
+  , handle : String
   , title: String
-  , description : String
-  , media : List Image
+  , descriptionHtml : String
+  , availableForSale : Bool
+  , priceRange : { maxVariantPrice : Money }
+  , featuredImage : Image
+  , images : NodeList Image
+  }
+
+-- Todo: Change this type to an actual monetary type.
+-- Perhaps move to use a JSON.Value for flags then decode to
+-- correctly handle input data and errors
+type alias Money =
+  { amount: String
+  , currencyCode : String
   }
 
 type alias Image =
-  { alt: String
+  { altText: Maybe String
   , url : String -- Ideally this should be type URL
   }
 
+type alias NodeList a =
+  { nodes: List a
+  }
+
+nodeListList : NodeList a -> List a
+nodeListList { nodes } = nodes
+
 generate : DataModel -> List (String, Html msg)
-generate { products } =
+generate { collection } =
   let
-    productPages = List.map generateProductPage products
+    productPages = nodeListList collection.products
+      |> List.map generateProductPage
   in
     List.append
-      [ ("/", home)
-      , ("/products", productList products)
-      , ("/terms", terms)
+      [ ("/", homePage)
+      , ("/terms", termsPage)
+      , ("/shop", shopPage collection)
       ]
       productPages
 
-productOverview : Product -> Html msg
-productOverview product =
+shopPage : ProductCollection -> Html msg
+shopPage collection =
   let
-    id = String.replace "gid://shopify/Product" "/products" product.id
-    href = id ++ ".html" |> C.projectPath
+    products = nodeListList collection.products
+    content =
+      [ C.h2 [] [ H.text "Shop" ]
+      , productList products
+      ]
   in
-    H.div []
-      [ H.a [ A.href href] [ H.text id ] ]
+    C.layout
+      [ H.section [] content ]
 
 productList : List Product -> Html msg
 productList products =
   let
-    productsView = List.map productOverview products
-    pageTitle = C.h2 [] [ H.text "Products" ]
-    content = pageTitle :: productsView
+    content = List.map productOverview products
   in
-  C.layout
-    [ H.section [] content ]
+    productLayout content
+
+productOverview : Product -> Html msg
+productOverview { id, featuredImage } =
+  let
+    localId = String.replace "gid://shopify/Product" "/products" id
+    href = localId ++ ".html" |> C.projectPath
+    src = featuredImage.url
+  in
+    productTile
+      [ H.a [ A.href href]
+          [ H.img
+              [ A.class "db"
+              , A.src src
+              ]
+              []
+          ]
+      ]
 
 generateProductPage : Product -> (String, Html msg)
 generateProductPage product =
@@ -61,11 +106,12 @@ generateProductPage product =
 productPage : Product -> Html msg
 productPage product =
   let
-    productImages = List.map productImage product.media
+    productImages = nodeListList product.images
+      |> List.map productImage
     productInfo =
       productTileInfo
         product.title
-        product.description
+        product.descriptionHtml
         <| Nothing
     content = productInfo :: productImages
   in
@@ -132,8 +178,8 @@ productTileSpacerM : Html msg
 productTileSpacerM =
   H.div [ A.class "w-0 w-third-m w-0-l pa2-m db" ] []
 
-home : Html msg
-home =
+homePage : Html msg
+homePage =
   C.layout
     [ H.section [ A.id "current-work" ]
         [ C.h2 [] [ H.text "Current Work" ]
@@ -236,8 +282,8 @@ home =
 -- At some point figure out how best to cater for large blocks of typography.
 -- Perhaps dillonkearns/elm-markdown would be useful to achieve this.
 
-terms : Html msg
-terms =
+termsPage : Html msg
+termsPage =
   C.layout
     [ H.section
         [ A.class "mw6 center"
