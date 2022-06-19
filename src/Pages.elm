@@ -27,7 +27,7 @@ generate { products } =
   in
     List.append
       [ ("/", home)
-      , ("/products", productsPage products)
+      , ("/products", productList products)
       , ("/terms", terms)
       ]
       productPages
@@ -41,8 +41,8 @@ productOverview product =
     H.div []
       [ H.a [ A.href href] [ H.text id ] ]
 
-productsPage : List Product -> Html msg
-productsPage products =
+productList : List Product -> Html msg
+productList products =
   let
     productList = List.map productOverview products
     pageTitle = C.h2 [] [ H.text "Products" ]
