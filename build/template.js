@@ -13,18 +13,18 @@ const template = (body) =>
   <meta property="og:url" content="">
   <meta property="og:image" content="">
 
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="~/frontend/site.webmanifest">
+  <link rel="apple-touch-icon" href="~/frontend/icon.png">
 
   <link rel="stylesheet" href="https://unpkg.com/tachyons@4/css/tachyons.min.css">
 
   <meta name="theme-color" content="#fafafa">
 
   <style>
-    @import url('fonts.css');
+    @import url('~/frontend/fonts.css');
   </style>
 
-  <script type="module" src="index.js"></script>
+  <script type="module" src="~/frontend/index.js"></script>
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8G0BV1N2JQ"></script>

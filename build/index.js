@@ -1,5 +1,5 @@
 var path = require('path'),
-    fs = require('fs'),
+    fs = require('filendir'),
     template = require('./template'),
     data = require('./data').data,
     builder = require('./elm').Elm.Build.init({ flags: data }),
