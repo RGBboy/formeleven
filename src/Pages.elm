@@ -21,10 +21,59 @@ type alias Image =
   }
 
 generate : DataModel -> List (String, Html msg)
-generate data =
-  [ ("/", home)
-  , ("/terms", terms)
-  ]
+generate { products } =
+  let
+    productPages = List.map generateProductPage products
+  in
+    List.append
+      [ ("/", home)
+      , ("/products", productsPage products)
+      , ("/terms", terms)
+      ]
+      productPages
+
+productOverview : Product -> Html msg
+productOverview product =
+  let
+    id = String.replace "gid://shopify/Product" "/products" product.id
+    href = id ++ ".html" |> C.projectPath
+  in
+    H.div []
+      [ H.a [ A.href href] [ H.text id ] ]
+
+productsPage : List Product -> Html msg
+productsPage products =
+  let
+    productList = List.map productOverview products
+    pageTitle = C.h2 [] [ H.text "Products" ]
+    content = pageTitle :: productList
+  in
+  C.layout
+    [ H.section [] content ]
+
+generateProductPage : Product -> (String, Html msg)
+generateProductPage product =
+  let
+    id = String.replace "gid://shopify/Product" "/products" product.id
+  in
+    (id, productPage product)
+
+productPage : Product -> Html msg
+productPage product =
+  let
+    productImages = List.map productImage product.media
+    productInfo =
+      productTileInfo
+        product.title
+        product.description
+        <| Nothing
+    content = productInfo :: productImages
+  in
+    C.layout [ productLayout content ]
+
+productImage : Image -> Html msg
+productImage { url } =
+  productTileImage url
 
 productLayout : List (Html msg) -> Html msg
 productLayout =
@@ -93,36 +142,36 @@ home =
                 "Ripple"
                 "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on an oscillating wave with a subtle distortion."
                 <| Just "https://www.etsy.com/listing/1093803559/ripple-lamp-shade-e14-white-pendant"
-            , productTileImage "img/512x512/ripple-on-wood.jpg"
-            , productTileImage "img/512x512/ripple-close-up-on.jpg"
-            , productTileImage "img/512x512/ripple-in-situ-pendant.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/ripple-on-wood.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/ripple-close-up-on.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/ripple-in-situ-pendant.jpg"
             , productTileSpacerL
-            , productTileImage "img/512x512/ripple-pendant.jpg"
-            , productTileImage "img/512x512/ripple-in-situ.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/ripple-pendant.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/ripple-in-situ.jpg"
             ]
         , productLayout
             [ productTileInfo
                 "Finn"
                 "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on a cubic oscillation with a subtle distortion."
                 <| Just "https://www.etsy.com/listing/1167534251/finn-lamp-shade-e27-white-pendant-light"
-            , productTileImage "img/512x512/finn-pendant.jpg"
-            , productTileImage "img/512x512/finn-close-up.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/finn-pendant.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/finn-close-up.jpg"
             , productTileSpacerM
-            , productTileImage "img/512x512/finn-in-situ.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/finn-in-situ.jpg"
             , productTileSpacerL
-            , productTileImage "img/512x512/finn-stand.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/finn-stand.jpg"
             ]
         , productLayout
             [ productTileInfo
                 "Chimney Triplet"
                 "Set of three small stoneware bud vases. Each a bold, simple shape, inspired by British, brutalist forms."
                 <| Just "https://www.etsy.com/listing/1163010301/chimney-triplet-set-of-three-stoneware"
-            , productTileImage "img/512x512/chimney-triplet-004.jpg"
-            , productTileImage "img/512x512/chimney-triplet-002.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-004.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-002.jpg"
             , productTileSpacerM
-            , productTileImage "img/512x512/chimney-triplet-003.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-003.jpg"
             , productTileSpacerL
-            , productTileImage "img/512x512/chimney-triplet-001.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-001.jpg"
             ]
         ]
     , H.section [ A.id "prototypes" ]
@@ -132,54 +181,54 @@ home =
                 "Murmur"
                 "Recycled&nbsp;Bioplastic, Ceramic, Light&nbsp;Fitting"
                 <| Nothing
-            , productTileImage "img/512x512/murmur.jpg"
-            , productTileImage "img/512x512/murmur-close-up.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/murmur.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/murmur-close-up.jpg"
             ]
         , productLayout
             [ productTileInfo
                 "Growth"
                 "Digital"
                 <| Nothing
-            , productTileImage "img/512x512/growth-vase-001-3.jpg"
-            , productTileImage "img/512x512/growth-vase-002-3.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/growth-vase-001-3.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/growth-vase-002-3.jpg"
             , productTileSpacerM
-            , productTileImage "img/512x512/growth-vase-003-3.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/growth-vase-003-3.jpg"
             ]
         , productLayout
             [ productTileInfo
                 "Inflation"
                 "Digital"
                 <| Nothing
-            , productTileImage "img/512x512/inflation-001.jpg"
-            , productTileImage "img/512x512/inflation-002.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/inflation-001.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/inflation-002.jpg"
             , productTileSpacerM
-            , productTileImage "img/512x512/inflation-003.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/inflation-003.jpg"
             ]
         , productLayout
             [ productTileInfo
                 "Seed"
                 "Porcelain"
                 <| Nothing
-            , productTileImage "img/512x512/seed.jpg"
-            , productTileImage "img/512x512/seed-triplet.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/seed.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/seed-triplet.jpg"
             ]
         , productLayout
             [ productTileInfo
                 "Noise"
                 "Digital"
                 <| Nothing
-            , productTileImage "img/512x512/spiral-brick-cell-001.jpg"
-            , productTileImage "img/512x512/spiral-brick-voronoi-001.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/spiral-brick-cell-001.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/spiral-brick-voronoi-001.jpg"
             , productTileSpacerM
-            , productTileImage "img/512x512/spiral-distorted-noise-001.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/spiral-distorted-noise-001.jpg"
             ]
         , productLayout
             [ productTileInfo
                 "Epicycloid"
                 "Digital"
                 <| Nothing
-            , productTileImage "img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
-            , productTileImage "img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
+            , productTileImage <| C.projectPath "/img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
             ]
         ]
     ]
