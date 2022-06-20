@@ -3,7 +3,6 @@ module Pages exposing (DataModel, generate)
 import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
-import Json.Encode as Encode
 
 
 
@@ -62,12 +61,12 @@ generate { collection } =
       ]
       productPages
 
-productList : List Product -> Html msg
-productList products =
+productListView : List Product -> Html msg
+productListView products =
   let
     content = List.map productOverview products
   in
-    productLayout content
+    C.tileLayout content
 
 productOverview : Product -> Html msg
 productOverview { handle, featuredImage, title, priceRange } =
@@ -124,188 +123,133 @@ productPage product =
     productImages = nodeListList product.images
       |> List.map productImage
     productInfo =
-      productTileFirst
-        [ productTileInfo
+      C.tileFirst
+        [ C.tileInfo
             product.title
             product.descriptionHtml
-        , buyButton localId
+        , C.buyButton localId
         ]
     content = productInfo :: productImages
   in
     C.layout
-      [ backButton
-      , productLayout content
+      [ C.backButton
+      , C.tileLayout content
       ]
-
-backButton : Html msg
-backButton =
-  H.a [ A.href "/" ] [ H.text "< back" ]
 
 productImage : Image -> Html msg
 productImage { url } =
-  productTileImage url
-
-productLayout : List (Html msg) -> Html msg
-productLayout =
-  H.div [ A.class "flex flex-wrap mv3" ]
-
-productTile : List (Html msg) -> Html msg
-productTile =
-  productTileExtra []
-
-productTileInfo : String -> String -> Html msg
-productTileInfo title description =
-  H.dl [ A.class "ma0 f6"]
-    [ H.dt [ A.class "clip" ] [ H.text "Title"]
-    , H.dd [ A.class "f3 ma0" ] [ H.text title ]
-    , H.dt [ A.class "clip" ] [ H.text "Description"]
-    , H.dd [ A.class "f5 fw2 ma0" ] [ H.text description ]
-    ]
-
-productTileFirst : List (Html msg) -> Html msg
-productTileFirst =
-  productTileExtra [ A.class "tr-ns self-end-ns" ]
-
-productTileExtra : List (Attribute msg) -> List (Html msg) -> Html msg
-productTileExtra attributes =
-  A.class "w-100 w-third-m w-25-l pa2" :: attributes
-    |> H.div
-
-buyButton : String -> Html msg
-buyButton localId =
-  H.div [ A.property "data-buy-button" (Encode.string localId) ] []
-
-cart : Html msg
-cart = H.div [ A.id "cart" ] []
-
-productTileImage : String -> Html msg
-productTileImage src =
-  productTile
-    [ H.img
-      [ A.class "db"
-      , A.src src
-      ]
-      []
-    ]
-
-productTileSpacerL : Html msg
-productTileSpacerL =
-  H.div [ A.class "w-0 w-25-l pa2-l db" ] []
-
-productTileSpacerM : Html msg
-productTileSpacerM =
-  H.div [ A.class "w-0 w-third-m w-0-l pa2-m db" ] []
+  C.tileImage url
 
 homePage : ProductCollection -> Html msg
 homePage collection =
   C.layout
     [ H.section [ A.id "current-work" ]
         [ C.h2 [] [ H.text "Shop" ]
-        , productList <| nodeListList collection.products
+        , productListView <| nodeListList collection.products
         , C.h2 [] [ H.text "Current Work" ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Ripple"
                     "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on an oscillating wave with a subtle distortion."
-                , buyButton "7260085158083" -- Ripple Product ID
+                , C.buyButton "7260085158083" -- Ripple Product ID
                 ]
-            , productTileImage "/img/512x512/ripple-on-wood.jpg"
-            , productTileImage "/img/512x512/ripple-close-up-on.jpg"
-            , productTileImage "/img/512x512/ripple-in-situ-pendant.jpg"
-            , productTileSpacerL
-            , productTileImage "/img/512x512/ripple-pendant.jpg"
-            , productTileImage "/img/512x512/ripple-in-situ.jpg"
+            , C.tileImage "/img/512x512/ripple-on-wood.jpg"
+            , C.tileImage "/img/512x512/ripple-close-up-on.jpg"
+            , C.tileImage "/img/512x512/ripple-in-situ-pendant.jpg"
+            , C.tileSpacerL
+            , C.tileImage "/img/512x512/ripple-pendant.jpg"
+            , C.tileImage "/img/512x512/ripple-in-situ.jpg"
             ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Finn"
                     "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on a cubic oscillation with a subtle distortion."
-                , buyButton "7260086239427" -- Finn Product ID
+                , C.buyButton "7260086239427" -- Finn Product ID
                 ]
-            , productTileImage "/img/512x512/finn-pendant.jpg"
-            , productTileImage "/img/512x512/finn-close-up.jpg"
-            , productTileSpacerM
-            , productTileImage "/img/512x512/finn-in-situ.jpg"
-            , productTileSpacerL
-            , productTileImage "/img/512x512/finn-stand.jpg"
+            , C.tileImage "/img/512x512/finn-pendant.jpg"
+            , C.tileImage "/img/512x512/finn-close-up.jpg"
+            , C.tileSpacerM
+            , C.tileImage "/img/512x512/finn-in-situ.jpg"
+            , C.tileSpacerL
+            , C.tileImage "/img/512x512/finn-stand.jpg"
             ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Chimney Triplet"
                     "Set of three small stoneware bud vases. Each a bold, simple shape, inspired by British, brutalist forms."
                 ]
-            , productTileImage "/img/512x512/chimney-triplet-004.jpg"
-            , productTileImage "/img/512x512/chimney-triplet-002.jpg"
-            , productTileSpacerM
-            , productTileImage "/img/512x512/chimney-triplet-003.jpg"
-            , productTileSpacerL
-            , productTileImage "/img/512x512/chimney-triplet-001.jpg"
+            , C.tileImage "/img/512x512/chimney-triplet-004.jpg"
+            , C.tileImage "/img/512x512/chimney-triplet-002.jpg"
+            , C.tileSpacerM
+            , C.tileImage "/img/512x512/chimney-triplet-003.jpg"
+            , C.tileSpacerL
+            , C.tileImage "/img/512x512/chimney-triplet-001.jpg"
             ]
         ]
     , H.section [ A.id "prototypes" ]
         [ C.h2 [] [ H.text "Prototypes" ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                   "Murmur"
                   "Recycled&nbsp;Bioplastic, Ceramic, Light&nbsp;Fitting"
                 ]
-            , productTileImage "/img/512x512/murmur.jpg"
-            , productTileImage "/img/512x512/murmur-close-up.jpg"
+            , C.tileImage "/img/512x512/murmur.jpg"
+            , C.tileImage "/img/512x512/murmur-close-up.jpg"
             ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Growth"
                     "Digital"
                 ]
-            , productTileImage "/img/512x512/growth-vase-001-3.jpg"
-            , productTileImage "/img/512x512/growth-vase-002-3.jpg"
-            , productTileSpacerM
-            , productTileImage "/img/512x512/growth-vase-003-3.jpg"
+            , C.tileImage "/img/512x512/growth-vase-001-3.jpg"
+            , C.tileImage "/img/512x512/growth-vase-002-3.jpg"
+            , C.tileSpacerM
+            , C.tileImage "/img/512x512/growth-vase-003-3.jpg"
             ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Inflation"
                     "Digital"
                 ]
-            , productTileImage "/img/512x512/inflation-001.jpg"
-            , productTileImage "/img/512x512/inflation-002.jpg"
-            , productTileSpacerM
-            , productTileImage "/img/512x512/inflation-003.jpg"
+            , C.tileImage "/img/512x512/inflation-001.jpg"
+            , C.tileImage "/img/512x512/inflation-002.jpg"
+            , C.tileSpacerM
+            , C.tileImage "/img/512x512/inflation-003.jpg"
             ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Seed"
                     "Porcelain"
                 ]
-            , productTileImage "/img/512x512/seed.jpg"
-            , productTileImage "/img/512x512/seed-triplet.jpg"
+            , C.tileImage "/img/512x512/seed.jpg"
+            , C.tileImage "/img/512x512/seed-triplet.jpg"
             ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Noise"
                     "Digital"
                 ]
-            , productTileImage "/img/512x512/spiral-brick-cell-001.jpg"
-            , productTileImage "/img/512x512/spiral-brick-voronoi-001.jpg"
-            , productTileSpacerM
-            , productTileImage "/img/512x512/spiral-distorted-noise-001.jpg"
+            , C.tileImage "/img/512x512/spiral-brick-cell-001.jpg"
+            , C.tileImage "/img/512x512/spiral-brick-voronoi-001.jpg"
+            , C.tileSpacerM
+            , C.tileImage "/img/512x512/spiral-distorted-noise-001.jpg"
             ]
-        , productLayout
-            [ productTileFirst
-                [ productTileInfo
+        , C.tileLayout
+            [ C.tileFirst
+                [ C.tileInfo
                     "Epicycloid"
                     "Digital"
                 ]
-            , productTileImage "/img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
-            , productTileImage "/img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
+            , C.tileImage "/img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
+            , C.tileImage "/img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
             ]
         ]
     ]
