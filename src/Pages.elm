@@ -132,7 +132,14 @@ productPage product =
         ]
     content = productInfo :: productImages
   in
-    C.layout [ productLayout content ]
+    C.layout
+      [ backButton
+      , productLayout content
+      ]
+
+backButton : Html msg
+backButton =
+  H.a [ A.href "/" ] [ H.text "< back" ]
 
 productImage : Image -> Html msg
 productImage { url } =
