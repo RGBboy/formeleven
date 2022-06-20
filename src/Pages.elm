@@ -57,24 +57,10 @@ generate { collection } =
       |> List.map generateProductPage
   in
     List.append
-      [ ("/", homePage)
+      [ ("/", homePage collection)
       , ("/terms", termsPage)
-      , ("/shop", shopPage collection)
       ]
       productPages
-
-shopPage : ProductCollection -> Html msg
-shopPage collection =
-  let
-    products = nodeListList collection.products
-    content =
-      [ C.h2 [] [ H.text "Shop" ]
-      , productList products
-      , cart
-      ]
-  in
-    C.layout
-      [ H.section [] content ]
 
 productList : List Product -> Html msg
 productList products =
@@ -205,12 +191,13 @@ productTileSpacerM : Html msg
 productTileSpacerM =
   H.div [ A.class "w-0 w-third-m w-0-l pa2-m db" ] []
 
-homePage : Html msg
-homePage =
+homePage : ProductCollection -> Html msg
+homePage collection =
   C.layout
     [ H.section [ A.id "current-work" ]
-        [ C.h2 [] [ H.text "Current Work" ]
-        , H.a [ A.href "/shop.html" ] [ H.text "Shop" ]
+        [ C.h2 [] [ H.text "Shop" ]
+        , productList <| nodeListList collection.products
+        , C.h2 [] [ H.text "Current Work" ]
         , productLayout
             [ productTileFirst
                 [ productTileInfo
