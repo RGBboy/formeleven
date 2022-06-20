@@ -190,3 +190,7 @@ buyButton localId =
 
 cart : Html msg
 cart = H.div [ A.id "cart" ] []
+
+formatGBP : String -> String
+formatGBP price =
+  "£ " ++ price
