@@ -3,6 +3,9 @@ module Pages exposing (DataModel, generate)
 import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
+import Json.Encode as Encode
+
+
 
 type alias DataModel =
   { collection : ProductCollection
@@ -67,6 +70,7 @@ shopPage collection =
     content =
       [ C.h2 [] [ H.text "Shop" ]
       , productList products
+      , cart
       ]
   in
     C.layout
@@ -80,39 +84,68 @@ productList products =
     productLayout content
 
 productOverview : Product -> Html msg
-productOverview { id, featuredImage } =
+productOverview { id, featuredImage, title, priceRange } =
   let
-    localId = String.replace "gid://shopify/Product" "/products" id
-    href = localId ++ ".html" |> C.projectPath
+    price = priceRange.maxVariantPrice.amount
+    productPath = localIdFromGlobalId id |> productPathFromLocalId
+    href = productPath ++ ".html"
     src = featuredImage.url
   in
-    productTile
-      [ H.a [ A.href href]
-          [ H.img
-              [ A.class "db"
-              , A.src src
+    H.a
+      [ A.class "hide-child w-100 w-third-m w-25-l link overflow-hidden pa2 relative"
+      , A.href href
+      ]
+      [ H.img
+          [ A.class "db"
+          , A.src src
+          ]
+          []
+      , H.div
+          [ A.class "child absolute top-0 right-0 bottom-0 left-0" ]
+          [ H.div
+              [ A.class "absolute top-0 right-0 bottom-0 left-0 z-1 tc black flex flex-column justify-center" ]
+              [ H.h2
+                  [ A.class "f4 fw4 mv1sho" ]
+                  [ H.text title ]
+              , H.p
+                  [ A.class "f4 fw2 mv1" ]
+                  [ H.text <| "£ " ++ price ]
               ]
+          , H.div
+              [ A.class "absolute top-0 right-0 bottom-0 left-0 bg-white o-60" ]
               []
           ]
       ]
 
+localIdFromGlobalId : String -> String
+localIdFromGlobalId globalId =
+  String.replace "gid://shopify/Product/" "" globalId
+
+productPathFromLocalId : String -> String
+productPathFromLocalId localId =
+  String.append "/products/" localId
+
 generateProductPage : Product -> (String, Html msg)
 generateProductPage product =
   let
-    id = String.replace "gid://shopify/Product" "/products" product.id
+    path = localIdFromGlobalId product.id
+      |> productPathFromLocalId
   in
-    (id, productPage product)
+    (path, productPage product)
 
 productPage : Product -> Html msg
 productPage product =
   let
+    localId = localIdFromGlobalId product.id
     productImages = nodeListList product.images
       |> List.map productImage
     productInfo =
-      productTileInfo
-        product.title
-        product.descriptionHtml
-        <| Nothing
+      productTileFirst
+        [ productTileInfo
+            product.title
+            product.descriptionHtml
+        , buyButton localId
+        ]
     content = productInfo :: productImages
   in
     C.layout [ productLayout content ]
@@ -129,36 +162,30 @@ productTile : List (Html msg) -> Html msg
 productTile =
   productTileExtra []
 
-productTileInfo : String -> String -> Maybe String -> Html msg
-productTileInfo title description url =
-  let
-    link = Maybe.map (pillLink "Visit Store") url
-    linkList = List.filterMap identity [ link ]
-    content =
-      List.append
-        [ H.dl [ A.class "ma0 f6"]
-            [ H.dt [ A.class "clip" ] [ H.text "Title"]
-            , H.dd [ A.class "f3 ma0" ] [ H.text title ]
-            , H.dt [ A.class "clip" ] [ H.text "Description"]
-            , H.dd [ A.class "f5 fw2 ma0" ] [ H.text description ]
-            ]
-        ]
-        linkList
-  in
-    productTileExtra [ A.class "tr-ns self-end-ns" ] content
+productTileInfo : String -> String -> Html msg
+productTileInfo title description =
+  H.dl [ A.class "ma0 f6"]
+    [ H.dt [ A.class "clip" ] [ H.text "Title"]
+    , H.dd [ A.class "f3 ma0" ] [ H.text title ]
+    , H.dt [ A.class "clip" ] [ H.text "Description"]
+    , H.dd [ A.class "f5 fw2 ma0" ] [ H.text description ]
+    ]
+
+productTileFirst : List (Html msg) -> Html msg
+productTileFirst =
+  productTileExtra [ A.class "tr-ns self-end-ns" ]
 
 productTileExtra : List (Attribute msg) -> List (Html msg) -> Html msg
 productTileExtra attributes =
   A.class "w-100 w-third-m w-25-l pa2" :: attributes
     |> H.div
 
-pillLink : String -> String -> Html msg
-pillLink text href =
-  H.a
-    [ A.class "f6 grow no-underline br-pill ph3 pb1 pt2 mt2 dib white bg-black"
-    , A.href href
-    ]
-    [ H.text text ]
+buyButton : String -> Html msg
+buyButton localId =
+  H.div [ A.property "data-buy-button" (Encode.string localId) ] []
+
+cart : Html msg
+cart = H.div [ A.id "cart" ] []
 
 productTileImage : String -> Html msg
 productTileImage src =
@@ -183,105 +210,116 @@ homePage =
   C.layout
     [ H.section [ A.id "current-work" ]
         [ C.h2 [] [ H.text "Current Work" ]
+        , H.a [ A.href "/shop.html" ] [ H.text "Shop" ]
         , productLayout
-            [ productTileInfo
-                "Ripple"
-                "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on an oscillating wave with a subtle distortion."
-                <| Just "https://www.etsy.com/listing/1093803559/ripple-lamp-shade-e14-white-pendant"
-            , productTileImage <| C.projectPath "/img/512x512/ripple-on-wood.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/ripple-close-up-on.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/ripple-in-situ-pendant.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Ripple"
+                    "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on an oscillating wave with a subtle distortion."
+                , buyButton "7260085158083" -- Ripple Product ID
+                ]
+            , productTileImage "/img/512x512/ripple-on-wood.jpg"
+            , productTileImage "/img/512x512/ripple-close-up-on.jpg"
+            , productTileImage "/img/512x512/ripple-in-situ-pendant.jpg"
             , productTileSpacerL
-            , productTileImage <| C.projectPath "/img/512x512/ripple-pendant.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/ripple-in-situ.jpg"
+            , productTileImage "/img/512x512/ripple-pendant.jpg"
+            , productTileImage "/img/512x512/ripple-in-situ.jpg"
             ]
         , productLayout
-            [ productTileInfo
-                "Finn"
-                "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on a cubic oscillation with a subtle distortion."
-                <| Just "https://www.etsy.com/listing/1167534251/finn-lamp-shade-e27-white-pendant-light"
-            , productTileImage <| C.projectPath "/img/512x512/finn-pendant.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/finn-close-up.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Finn"
+                    "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on a cubic oscillation with a subtle distortion."
+                , buyButton "7260086239427" -- Finn Product ID
+                ]
+            , productTileImage "/img/512x512/finn-pendant.jpg"
+            , productTileImage "/img/512x512/finn-close-up.jpg"
             , productTileSpacerM
-            , productTileImage <| C.projectPath "/img/512x512/finn-in-situ.jpg"
+            , productTileImage "/img/512x512/finn-in-situ.jpg"
             , productTileSpacerL
-            , productTileImage <| C.projectPath "/img/512x512/finn-stand.jpg"
+            , productTileImage "/img/512x512/finn-stand.jpg"
             ]
         , productLayout
-            [ productTileInfo
-                "Chimney Triplet"
-                "Set of three small stoneware bud vases. Each a bold, simple shape, inspired by British, brutalist forms."
-                <| Just "https://www.etsy.com/listing/1163010301/chimney-triplet-set-of-three-stoneware"
-            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-004.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-002.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Chimney Triplet"
+                    "Set of three small stoneware bud vases. Each a bold, simple shape, inspired by British, brutalist forms."
+                ]
+            , productTileImage "/img/512x512/chimney-triplet-004.jpg"
+            , productTileImage "/img/512x512/chimney-triplet-002.jpg"
             , productTileSpacerM
-            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-003.jpg"
+            , productTileImage "/img/512x512/chimney-triplet-003.jpg"
             , productTileSpacerL
-            , productTileImage <| C.projectPath "/img/512x512/chimney-triplet-001.jpg"
+            , productTileImage "/img/512x512/chimney-triplet-001.jpg"
             ]
         ]
     , H.section [ A.id "prototypes" ]
         [ C.h2 [] [ H.text "Prototypes" ]
         , productLayout
-            [ productTileInfo
-                "Murmur"
-                "Recycled&nbsp;Bioplastic, Ceramic, Light&nbsp;Fitting"
-                <| Nothing
-            , productTileImage <| C.projectPath "/img/512x512/murmur.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/murmur-close-up.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                  "Murmur"
+                  "Recycled&nbsp;Bioplastic, Ceramic, Light&nbsp;Fitting"
+                ]
+            , productTileImage "/img/512x512/murmur.jpg"
+            , productTileImage "/img/512x512/murmur-close-up.jpg"
             ]
         , productLayout
-            [ productTileInfo
-                "Growth"
-                "Digital"
-                <| Nothing
-            , productTileImage <| C.projectPath "/img/512x512/growth-vase-001-3.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/growth-vase-002-3.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Growth"
+                    "Digital"
+                ]
+            , productTileImage "/img/512x512/growth-vase-001-3.jpg"
+            , productTileImage "/img/512x512/growth-vase-002-3.jpg"
             , productTileSpacerM
-            , productTileImage <| C.projectPath "/img/512x512/growth-vase-003-3.jpg"
+            , productTileImage "/img/512x512/growth-vase-003-3.jpg"
             ]
         , productLayout
-            [ productTileInfo
-                "Inflation"
-                "Digital"
-                <| Nothing
-            , productTileImage <| C.projectPath "/img/512x512/inflation-001.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/inflation-002.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Inflation"
+                    "Digital"
+                ]
+            , productTileImage "/img/512x512/inflation-001.jpg"
+            , productTileImage "/img/512x512/inflation-002.jpg"
             , productTileSpacerM
-            , productTileImage <| C.projectPath "/img/512x512/inflation-003.jpg"
+            , productTileImage "/img/512x512/inflation-003.jpg"
             ]
         , productLayout
-            [ productTileInfo
-                "Seed"
-                "Porcelain"
-                <| Nothing
-            , productTileImage <| C.projectPath "/img/512x512/seed.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/seed-triplet.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Seed"
+                    "Porcelain"
+                ]
+            , productTileImage "/img/512x512/seed.jpg"
+            , productTileImage "/img/512x512/seed-triplet.jpg"
             ]
         , productLayout
-            [ productTileInfo
-                "Noise"
-                "Digital"
-                <| Nothing
-            , productTileImage <| C.projectPath "/img/512x512/spiral-brick-cell-001.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/spiral-brick-voronoi-001.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Noise"
+                    "Digital"
+                ]
+            , productTileImage "/img/512x512/spiral-brick-cell-001.jpg"
+            , productTileImage "/img/512x512/spiral-brick-voronoi-001.jpg"
             , productTileSpacerM
-            , productTileImage <| C.projectPath "/img/512x512/spiral-distorted-noise-001.jpg"
+            , productTileImage "/img/512x512/spiral-distorted-noise-001.jpg"
             ]
         , productLayout
-            [ productTileInfo
-                "Epicycloid"
-                "Digital"
-                <| Nothing
-            , productTileImage <| C.projectPath "/img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
-            , productTileImage <| C.projectPath "/img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
+            [ productTileFirst
+                [ productTileInfo
+                    "Epicycloid"
+                    "Digital"
+                ]
+            , productTileImage "/img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
+            , productTileImage "/img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
             ]
         ]
     ]
 
 -- At some point figure out how best to cater for large blocks of typography.
 -- Perhaps dillonkearns/elm-markdown would be useful to achieve this.
-
 termsPage : Html msg
 termsPage =
   C.layout

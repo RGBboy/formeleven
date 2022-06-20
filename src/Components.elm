@@ -3,10 +3,6 @@ module Components exposing (..)
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
 
-projectPath : String -> String
-projectPath absolutePath =
-  "~/frontend" ++ absolutePath
-
 layout : List (Html msg) -> Html msg
 layout content =
   body
@@ -32,7 +28,7 @@ header =
   H.header [ A.class "w-100 mw8 center tc mv4" ]
     [ H.img
         [ A.class "h3 h4-l"
-        , A.src <| projectPath "/img/logo-512x512.png"
+        , A.src "/img/logo-512x512.png"
         ] []
     , H.h1 [ A.class "f3 f2-l fw3 ttu" ]
         [ H.text "Form "
@@ -98,7 +94,7 @@ footer =
         , H.text " All Rights Reserved | "
         , H.a
             [ A.class "link white underline dim"
-            , A.href "/terms"
+            , A.href "/terms.html"
             , A.title "Terms and Conditions"
             ]
             [ H.text "T&Cs"]

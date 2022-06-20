@@ -5,6 +5,10 @@
   "keywords": "",
   "license": "",
   "author": "",
+  "alias": {
+    "./index.js": "./src/index.js",
+    "./!(frontend|src)/**": "./frontend/$1/$2"
+  },
   "scripts": {
     "build": "npm run init && npm run build-elm && npm run build-html && npm run build-frontend",
     "build-elm": "elm make ./src/Build.elm --output /var/tmp/elm.js && sed \"s/'REPLACE_ME_WITH_JSON_STRINGIFY'/JSON.stringify(x)/g\" /var/tmp/elm.js > ./build/elm.js",
@@ -18,10 +22,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "@parcel/packager-raw-url": "^2.3.2",
-    "@parcel/transformer-elm": "^2.3.2",
-    "@parcel/transformer-webmanifest": "^2.3.2",
-    "parcel": "^2.0.1"
+    "@parcel/packager-raw-url": "^2.6.1",
+    "@parcel/transformer-elm": "^2.6.1",
+    "@parcel/transformer-webmanifest": "^2.6.1",
+    "parcel": "^2.6.1"
   },
   "dependencies": {
     "elm": "^0.19.1-5",
