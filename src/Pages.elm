@@ -70,10 +70,10 @@ productList products =
     productLayout content
 
 productOverview : Product -> Html msg
-productOverview { id, featuredImage, title, priceRange } =
+productOverview { handle, featuredImage, title, priceRange } =
   let
     price = priceRange.maxVariantPrice.amount
-    productPath = localIdFromGlobalId id |> productPathFromLocalId
+    productPath = productPathFromHandle handle
     href = productPath ++ ".html"
     src = featuredImage.url
   in
@@ -107,17 +107,15 @@ localIdFromGlobalId : String -> String
 localIdFromGlobalId globalId =
   String.replace "gid://shopify/Product/" "" globalId
 
-productPathFromLocalId : String -> String
-productPathFromLocalId localId =
-  String.append "/products/" localId
+productPathFromHandle : String -> String
+productPathFromHandle handle =
+  String.append "/products/" handle
 
 generateProductPage : Product -> (String, Html msg)
 generateProductPage product =
-  let
-    path = localIdFromGlobalId product.id
-      |> productPathFromLocalId
-  in
-    (path, productPage product)
+  ( productPathFromHandle product.handle
+  , productPage product
+  )
 
 productPage : Product -> Html msg
 productPage product =
