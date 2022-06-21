@@ -21,17 +21,17 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B04-on_095d676e-4eaf-4ff6-ab59-900034e67216_480x480.jpg?v=1655657024"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B04-on_095d676e-4eaf-4ff6-ab59-900034e67216_512x512.jpg?v=1655657024"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B04-on_095d676e-4eaf-4ff6-ab59-900034e67216_480x480.jpg?v=1655657024"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B04-on_095d676e-4eaf-4ff6-ab59-900034e67216_512x512.jpg?v=1655657024"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B04-off_fa420777-7cca-44f8-a3f4-d235fe56e81b_480x480.jpg?v=1655657024"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B04-off_fa420777-7cca-44f8-a3f4-d235fe56e81b_512x512.jpg?v=1655657024"
                 }
               ]
             }
@@ -50,17 +50,17 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B28-off_e1325a36-545b-448a-86f3-2d93d2266c57_480x480.jpg?v=1655643970"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B28-off_e1325a36-545b-448a-86f3-2d93d2266c57_512x512.jpg?v=1655643970"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B28-off_e1325a36-545b-448a-86f3-2d93d2266c57_480x480.jpg?v=1655643970"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B28-off_e1325a36-545b-448a-86f3-2d93d2266c57_512x512.jpg?v=1655643970"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B28-on_a8ec86d8-4807-4d4e-ac3c-755826685a94_480x480.jpg?v=1655643970"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/4B28-on_a8ec86d8-4807-4d4e-ac3c-755826685a94_512x512.jpg?v=1655643970"
                 }
               ]
             }
@@ -79,17 +79,17 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C04-off_480x480.jpg?v=1655374884"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C04-off_512x512.jpg?v=1655374884"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C04-off_480x480.jpg?v=1655374884"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C04-off_512x512.jpg?v=1655374884"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C04-on_480x480.jpg?v=1655374884"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C04-on_512x512.jpg?v=1655374884"
                 }
               ]
             }
@@ -108,17 +108,17 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C1D-off_480x480.jpg?v=1655374828"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C1D-off_512x512.jpg?v=1655374828"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C1D-off_480x480.jpg?v=1655374828"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C1D-off_512x512.jpg?v=1655374828"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C1D-on_480x480.jpg?v=1655374828"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/5C1D-on_512x512.jpg?v=1655374828"
                 }
               ]
             }
@@ -137,17 +137,17 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A715-off_480x480.jpg?v=1655374126"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A715-off_512x512.jpg?v=1655374126"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A715-off_480x480.jpg?v=1655374126"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A715-off_512x512.jpg?v=1655374126"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A715-on_480x480.jpg?v=1655374126"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A715-on_512x512.jpg?v=1655374126"
                 }
               ]
             }
@@ -166,17 +166,17 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A734-off_480x480.jpg?v=1655374182"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A734-off_512x512.jpg?v=1655374182"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A734-off_480x480.jpg?v=1655374182"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A734-off_512x512.jpg?v=1655374182"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A734-on_480x480.jpg?v=1655374182"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/A734-on_512x512.jpg?v=1655374182"
                 }
               ]
             }
@@ -195,21 +195,37 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0739_480x480.jpg?v=1655116467"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0739_512x512.jpg?v=1655116467"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0739_480x480.jpg?v=1655116467"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0739_512x512.jpg?v=1655116467"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0740_480x480.jpg?v=1655116467"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0740_512x512.jpg?v=1655116467"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF1093_480x480.jpg?v=1655116467"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF1093_512x512.jpg?v=1655116467"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF1124_512x512.jpg?v=1655116467"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0677_512x512.jpg?v=1655116467"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/finn-dimensions-side_512x512.jpg?v=1655116467"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/finn-dimensions-top_512x512.jpg?v=1655116467"
                 }
               ]
             }
@@ -228,21 +244,45 @@ const data = {
             },
             "featuredImage": {
               "altText": null,
-              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0501-edited_480x480.jpg?v=1655119228"
+              "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0501-edited_512x512.jpg?v=1655119228"
             },
             "images": {
               "nodes": [
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0501-edited_480x480.jpg?v=1655119228"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0501-edited_512x512.jpg?v=1655119228"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0438_480x480.jpg?v=1655119228"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0438_512x512.jpg?v=1655119228"
                 },
                 {
                   "altText": null,
-                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0451_480x480.jpg?v=1655119228"
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0451_512x512.jpg?v=1655119228"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0454_512x512.jpg?v=1655119228"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF0508_512x512.jpg?v=1655119228"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/DSCF1068_512x512.jpg?v=1655119228"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/RippleHands_512x512.jpg?v=1655119228"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/ripple-dimensions-side_512x512.jpg?v=1655119228"
+                },
+                {
+                  "altText": null,
+                  "url": "https://cdn.shopify.com/s/files/1/0617/8750/4835/products/ripple-dimensions-top_512x512.jpg?v=1655119228"
                 }
               ]
             }

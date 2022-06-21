@@ -22,6 +22,7 @@ const template = (body) =>
 
   <style>
     @import url('/fonts.css');
+    @import url('/style.css');
   </style>
 
   <script type="module" src="/index.js"></script>

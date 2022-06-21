@@ -1,0 +1,16 @@
+.gallery--item--control,
+.gallery--item--image {
+  display: none;
+}
+.gallery--item--control:checked + .gallery--item--thumbnail {
+  cursor: auto;
+  opacity: 0.5;
+}
+.gallery--item--control:checked + .gallery--item--thumbnail + .gallery--item--image {
+  display: block;
+}
+.gallery--item--thumbnail {
+  display: block;
+  cursor: pointer;
+  user-select: none;
+}

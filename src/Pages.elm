@@ -94,7 +94,7 @@ productOverview { handle, featuredImage, title, priceRange } =
                   [ H.text title ]
               , H.p
                   [ A.class "f4 fw2 mv1" ]
-                  [ H.text <| "£ " ++ price ]
+                  [ H.text <| C.formatGBP price ]
               ]
           , H.div
               [ A.class "absolute top-0 right-0 bottom-0 left-0 bg-white o-60" ]
@@ -120,21 +120,74 @@ productPage : Product -> Html msg
 productPage product =
   let
     localId = localIdFromGlobalId product.id
-    productImages = nodeListList product.images
-      |> List.map productImage
-    productInfo =
-      C.tileFirst
-        [ C.tileInfo
-            product.title
-            product.descriptionHtml
-        , C.buyButton localId
-        ]
-    content = productInfo :: productImages
+    price = product.priceRange.maxVariantPrice.amount
   in
     C.layout
       [ C.backButton
-      , C.tileLayout content
+      , H.div [ A.class "flex mv3 flex-wrap" ]
+          [ H.div [ A.class "w-100 w-50-ns ph1" ]
+              [ gallery <| nodeListList product.images ]
+          , H.div [ A.class "w-100 w-50-ns ph2" ]
+              [ H.h1 [ A.class "f3 fw4 mv2 measure" ] [ H.text product.title ]
+              , H.p [ A.class "f3 fw2 mv0 measure" ] [ H.text <| C.formatGBP price ]
+              , C.buyButton localId
+              , H.div [ A.class "f4 fw2 measure" ] [ H.text product.descriptionHtml ] -- Does this work?
+              ]
+          ]
       ]
+
+-- contains IDs, may want to update to pass in a prefix to allow multiple on a page
+gallery : List Image -> Html msg
+gallery images =
+  H.div
+    [ A.class "flex flex-wrap" ]
+    <| List.concat
+    <| List.indexedMap galleryItem images
+
+galleryItem : Int -> Image -> List (Html msg)
+galleryItem index { url } =
+  let
+    checked =
+      case index of
+        0 -> [ A.checked True ]
+        _ -> []
+    stringIndex = String.fromInt index
+    id = "gallery--item__" ++ stringIndex
+    inputAttributes =
+      List.append
+        [ A.id id
+        , A.class "gallery--item--control"
+        , A.type_ "radio"
+        , A.name "gallery"
+        , A.value stringIndex
+        ]
+        checked
+  in
+    [ H.input inputAttributes []
+    , H.label
+        [ A.for id
+        , A.class "gallery--item--thumbnail"
+        , A.class "order-1 dim w-20"
+        ]
+        [ H.span [ A.class "db pv1 ph1" ]
+            [ H.img
+                [ A.class "db"
+                , A.src url
+                ]
+                []
+            ]
+        ]
+    , H.div
+        [ A.class "gallery--item--image"
+        , A.class "order-0 ph1 pb1"
+        ]
+        [ H.img
+            [ A.class "db"
+            , A.src url
+            ]
+            []
+        ]
+    ]
 
 productImage : Image -> Html msg
 productImage { url } =
