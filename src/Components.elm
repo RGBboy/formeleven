@@ -201,6 +201,7 @@ soldOut =
     [ H.span
         [ A.class "dib f5 br3 pv2 ph3 white bg-silver" ]
         [ H.text "Sold Out" ]
+    , cart
     ]
 
 cart : Html msg

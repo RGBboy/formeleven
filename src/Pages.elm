@@ -205,6 +205,7 @@ homePage collection =
     [ H.section [ A.id "shop" ]
         [ C.h2 [] [ H.text "Shop" ]
         , productListView <| nodeListList collection.products
+        , C.cart
         ]
     , H.section [ A.id "prototypes" ]
         [ C.h2 [] [ H.text "Prototypes" ]
