@@ -206,35 +206,16 @@ homePage collection =
         [ C.h2 [] [ H.text "Shop" ]
         , productListView <| nodeListList collection.products
         ]
-    , H.section [ A.id "current-work" ]
-        [ C.h2 [] [ H.text "Current Work" ]
+    , H.section [ A.id "prototypes" ]
+        [ C.h2 [] [ H.text "Prototypes" ]
         , C.tileLayout
             [ C.tileFirst
                 [ C.tileInfo
-                    "Ripple"
-                    "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on an oscillating wave with a subtle distortion."
-                , C.buyButton "7260085158083" -- Ripple Product ID
+                  "Murmur"
+                  "Recycled&nbsp;Bioplastic, Ceramic, Light&nbsp;Fitting"
                 ]
-            , C.tileImage "/img/512x512/ripple-on-wood.jpg"
-            , C.tileImage "/img/512x512/ripple-close-up-on.jpg"
-            , C.tileImage "/img/512x512/ripple-in-situ-pendant.jpg"
-            , C.tileSpacerL
-            , C.tileImage "/img/512x512/ripple-pendant.jpg"
-            , C.tileImage "/img/512x512/ripple-in-situ.jpg"
-            ]
-        , C.tileLayout
-            [ C.tileFirst
-                [ C.tileInfo
-                    "Finn"
-                    "A digitally fabricated lamp shade made from recycled bioplastic. The form is based on a cubic oscillation with a subtle distortion."
-                , C.buyButton "7260086239427" -- Finn Product ID
-                ]
-            , C.tileImage "/img/512x512/finn-pendant.jpg"
-            , C.tileImage "/img/512x512/finn-close-up.jpg"
-            , C.tileSpacerM
-            , C.tileImage "/img/512x512/finn-in-situ.jpg"
-            , C.tileSpacerL
-            , C.tileImage "/img/512x512/finn-stand.jpg"
+            , C.tileImage "/img/512x512/murmur.jpg"
+            , C.tileImage "/img/512x512/murmur-close-up.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
@@ -248,18 +229,6 @@ homePage collection =
             , C.tileImage "/img/512x512/chimney-triplet-003.jpg"
             , C.tileSpacerL
             , C.tileImage "/img/512x512/chimney-triplet-001.jpg"
-            ]
-        ]
-    , H.section [ A.id "prototypes" ]
-        [ C.h2 [] [ H.text "Prototypes" ]
-        , C.tileLayout
-            [ C.tileFirst
-                [ C.tileInfo
-                  "Murmur"
-                  "Recycled&nbsp;Bioplastic, Ceramic, Light&nbsp;Fitting"
-                ]
-            , C.tileImage "/img/512x512/murmur.jpg"
-            , C.tileImage "/img/512x512/murmur-close-up.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
