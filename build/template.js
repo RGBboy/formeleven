@@ -27,6 +27,8 @@ const template = (body) =>
 
   <script type="module" src="/index.js"></script>
 
+  <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
+
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-8G0BV1N2JQ"></script>
   <script>

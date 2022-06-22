@@ -121,6 +121,12 @@ productPage product =
   let
     localId = localIdFromGlobalId product.id
     price = product.priceRange.maxVariantPrice.amount
+    buyButton =
+      case product.availableForSale of
+        True ->
+          C.buyButton localId
+        False ->
+          C.soldOut
   in
     C.layout
       [ C.backButton
@@ -129,8 +135,8 @@ productPage product =
               [ gallery <| nodeListList product.images ]
           , H.div [ A.class "w-100 w-50-ns ph2" ]
               [ H.h1 [ A.class "f3 fw4 mv2 measure" ] [ H.text product.title ]
-              , H.p [ A.class "f3 fw2 mv0 measure" ] [ H.text <| C.formatGBP price ]
-              , C.buyButton localId
+              , H.p [ A.class "f3 fw2 mv2 measure" ] [ H.text <| C.formatGBP price ]
+              , buyButton
               , H.div [ A.class "f4 fw2 measure" ] [ H.text product.descriptionHtml ] -- Does this work?
               ]
           ]

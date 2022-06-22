@@ -186,7 +186,18 @@ iconInstagram =
 -- SHOPIFY
 buyButton : String -> Html msg
 buyButton localId =
-  H.div [ A.property "data-buy-button" (Encode.string localId) ] []
+  H.div
+    [ A.property "data-buy-button" (Encode.string localId)
+    , A.class "mv2"
+    ] []
+
+soldOut : Html msg
+soldOut =
+  H.div [ A.class "mv2" ]
+    [ H.span
+        [ A.class "dib f5 br3 pv2 ph3 white bg-silver" ]
+        [ H.text "Sold Out" ]
+    ]
 
 cart : Html msg
 cart = H.div [ A.id "cart" ] []
