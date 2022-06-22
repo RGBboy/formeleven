@@ -144,7 +144,11 @@ tileSpacerM =
 -- BUTTONS
 backButton : Html msg
 backButton =
-  H.a [ A.href "/" ] [ H.text "< back" ]
+  H.a
+    [ A.class "dib f5 link dim black pa2 ba border-box"
+    , A.href "/#shop"
+    ]
+    [ H.text "< back" ]
 
 -- TYPOGRAPHY
 

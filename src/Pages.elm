@@ -129,7 +129,7 @@ productPage product =
           C.soldOut
   in
     C.layout
-      [ C.backButton
+      [ H.div [ A.class "ph2" ] [ C.backButton ]
       , H.div [ A.class "flex mv3 flex-wrap" ]
           [ H.div [ A.class "w-100 w-50-ns ph1" ]
               [ gallery <| nodeListList product.images ]
@@ -202,10 +202,12 @@ productImage { url } =
 homePage : ProductCollection -> Html msg
 homePage collection =
   C.layout
-    [ H.section [ A.id "current-work" ]
+    [ H.section [ A.id "shop" ]
         [ C.h2 [] [ H.text "Shop" ]
         , productListView <| nodeListList collection.products
-        , C.h2 [] [ H.text "Current Work" ]
+        ]
+    , H.section [ A.id "current-work" ]
+        [ C.h2 [] [ H.text "Current Work" ]
         , C.tileLayout
             [ C.tileFirst
                 [ C.tileInfo
