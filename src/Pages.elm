@@ -61,47 +61,6 @@ generate { collection } =
       ]
       productPages
 
-productListView : List Product -> Html msg
-productListView products =
-  let
-    content = List.map productOverview products
-  in
-    C.tileLayout content
-
-productOverview : Product -> Html msg
-productOverview { handle, featuredImage, title, priceRange } =
-  let
-    price = priceRange.maxVariantPrice.amount
-    productPath = productPathFromHandle handle
-    href = productPath ++ ".html"
-    src = featuredImage.url
-  in
-    H.a
-      [ A.class "hide-child w-100 w-third-m w-25-l link overflow-hidden pa2 relative"
-      , A.href href
-      ]
-      [ H.img
-          [ A.class "db"
-          , A.src src
-          ]
-          []
-      , H.div
-          [ A.class "child absolute top-0 right-0 bottom-0 left-0" ]
-          [ H.div
-              [ A.class "absolute top-0 right-0 bottom-0 left-0 z-1 tc black flex flex-column justify-center" ]
-              [ H.h2
-                  [ A.class "f4 fw4 mv1sho" ]
-                  [ H.text title ]
-              , H.p
-                  [ A.class "f4 fw2 mv1" ]
-                  [ H.text <| C.formatGBP price ]
-              ]
-          , H.div
-              [ A.class "absolute top-0 right-0 bottom-0 left-0 bg-white o-60" ]
-              []
-          ]
-      ]
-
 localIdFromGlobalId : String -> String
 localIdFromGlobalId globalId =
   String.replace "gid://shopify/Product/" "" globalId
@@ -109,6 +68,8 @@ localIdFromGlobalId globalId =
 productPathFromHandle : String -> String
 productPathFromHandle handle =
   String.append "/products/" handle
+
+-- Product Page
 
 generateProductPage : Product -> (String, Html msg)
 generateProductPage product =
@@ -195,9 +156,48 @@ galleryItem index { url } =
         ]
     ]
 
-productImage : Image -> Html msg
-productImage { url } =
-  C.tileImage url
+-- Home Page
+
+productListView : List Product -> Html msg
+productListView products =
+  let
+    content = List.map productListItem products
+  in
+    C.tileLayout content
+
+productListItem : Product -> Html msg
+productListItem { handle, featuredImage, title, priceRange } =
+  let
+    price = priceRange.maxVariantPrice.amount
+    productPath = productPathFromHandle handle
+    href = productPath ++ ".html"
+    src = featuredImage.url
+  in
+    H.a
+      [ A.class "hide-child w-100 w-third-m w-25-l link overflow-hidden pa2 relative"
+      , A.href href
+      ]
+      [ H.img
+          [ A.class "db"
+          , A.src src
+          ]
+          []
+      , H.div
+          [ A.class "child absolute top-0 right-0 bottom-0 left-0" ]
+          [ H.div
+              [ A.class "absolute top-0 right-0 bottom-0 left-0 z-1 tc black flex flex-column justify-center" ]
+              [ H.h2
+                  [ A.class "f4 fw4 mv1sho" ]
+                  [ H.text title ]
+              , H.p
+                  [ A.class "f4 fw2 mv1" ]
+                  [ H.text <| C.formatGBP price ]
+              ]
+          , H.div
+              [ A.class "absolute top-0 right-0 bottom-0 left-0 bg-white o-60" ]
+              []
+          ]
+      ]
 
 homePage : ProductCollection -> Html msg
 homePage collection =
@@ -284,6 +284,8 @@ homePage collection =
             ]
         ]
     ]
+
+-- Terms Page
 
 -- At some point figure out how best to cater for large blocks of typography.
 -- Perhaps dillonkearns/elm-markdown would be useful to achieve this.
