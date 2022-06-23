@@ -87,7 +87,10 @@ productPage product =
         True ->
           C.buyButton localId
         False ->
-          C.soldOut
+          H.div [ A.class "mv2" ]
+            [ C.soldOut
+            , C.cart
+            ]
   in
     C.layout
       [ H.div [ A.class "ph2" ] [ C.backButton ]
@@ -166,17 +169,26 @@ productListView products =
     C.tileLayout content
 
 productListItem : Product -> Html msg
-productListItem { handle, featuredImage, title, priceRange } =
+productListItem product =
   let
-    price = priceRange.maxVariantPrice.amount
-    productPath = productPathFromHandle handle
+    price = product.priceRange.maxVariantPrice.amount
+    productPath = productPathFromHandle product.handle
     href = productPath ++ ".html"
-    src = featuredImage.url
+    src = product.featuredImage.url
+    soldOut =
+      case product.availableForSale of
+        True ->
+          []
+        False ->
+          [ H.div [ A.class "absolute top-0 right-0"]
+              [ C.soldOut]
+          ]
   in
     H.a
       [ A.class "hide-child w-100 w-third-m w-25-l link overflow-hidden pa2 relative"
       , A.href href
       ]
+      <| List.append soldOut
       [ H.img
           [ A.class "db"
           , A.src src
@@ -188,7 +200,7 @@ productListItem { handle, featuredImage, title, priceRange } =
               [ A.class "absolute top-0 right-0 bottom-0 left-0 z-1 tc black flex flex-column justify-center" ]
               [ H.h2
                   [ A.class "f4 fw4 mv1sho" ]
-                  [ H.text title ]
+                  [ H.text product.title ]
               , H.p
                   [ A.class "f4 fw2 mv1" ]
                   [ H.text <| C.formatGBP price ]
