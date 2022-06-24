@@ -17,7 +17,7 @@ ShopifyBuy.UI.onReady(client).then(function (ui) {
   if (buttonElements.length == 0 && cartElement) {
     ui.createComponent("cart", {
       node: cartElement,
-      moneyFormat: "%24%7B%7Bamount%7D%7D",
+      moneyFormat: "%C2%A3%20%7B%7Bamount%7D%7D",
       options: shopifyOptions
     });
   } else {
