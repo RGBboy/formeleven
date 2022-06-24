@@ -214,12 +214,12 @@ productListItem product =
 homePage : ProductCollection -> Html msg
 homePage collection =
   C.layout
-    [ H.section [ A.id "shop" ]
+    [ C.section [ A.id "shop" ]
         [ C.h2 [] [ H.text "Shop" ]
         , productListView <| nodeListList collection.products
         , C.cart
         ]
-    , H.section [ A.id "prototypes" ]
+    , C.section [ A.id "prototypes" ]
         [ C.h2 [] [ H.text "Prototypes" ]
         , C.tileLayout
             [ C.tileFirst
@@ -304,7 +304,7 @@ homePage collection =
 termsPage : Html msg
 termsPage =
   C.layout
-    [ H.section
+    [ C.section
         [ A.class "mw6 center"
         , A.id "terms"
         ]

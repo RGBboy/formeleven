@@ -24,18 +24,23 @@ body content =
 
 header : Html msg
 header =
-  H.header [ A.class "w-100 mw8 center tc mv4" ]
-    [ H.img
-        [ A.class "h3 h4-l"
-        , A.src "/img/logo-512x512.png"
-        ] []
-    , H.h1 [ A.class "f3 f2-l fw3 ttu" ]
-        [ H.text "Form "
-        , H.br [] []
-        , H.text "Eleven"
+  H.header [ A.class "w-100 mw8 center mv4" ]
+    [ H.a
+        [ A.class "flex justify-center link dim black"
+        , A.href "/"
         ]
-    , H.h2 [ A.class "mt2 mb0 f4 fw2" ] [ H.text "Combining digital fabrication, handmade ceramics and luminaires." ]
-    , H.p [ A.class "f5 fw2" ] [ H.text "Deptford, London, UK." ]
+        [ H.img
+            [ A.class "h3 h4-l"
+            , A.src "/img/logo-512x512.png"
+            ] []
+        , H.h1 [ A.class "f3 f2-l fw3 ttu self-end mv0" ]
+            [ H.text "Form "
+            , H.br [] []
+            , H.text "Eleven"
+            ]
+        ]
+    , H.h2 [ A.class "f4 fw2 tc mt3 mb0" ] [ H.text "Combining digital fabrication, handmade ceramics and luminaires." ]
+    , H.p [ A.class "f5 fw2 tc" ] [ H.text "Deptford, London, UK." ]
     , H.div [ A.class "pv2 tc" ]
         [ H.a
             [ A.class "link hover-silver near-black dib h2 w2 mh2"
@@ -150,11 +155,17 @@ backButton =
     ]
     [ H.text "< back" ]
 
+-- LAYOUT
+section : List (Attribute msg) -> List (Html msg) -> Html msg
+section attributes =
+  A.class "mt4 mb5" :: attributes
+    |> H.section
+
 -- TYPOGRAPHY
 
 h2 : List (Attribute msg) -> List (Html msg) -> Html msg
 h2 attributes =
-  A.class "f2 fw2 mh2 mt4 mt5-ns mb4 bb b--silver" :: attributes
+  A.class "f2 fw2 mh2 mv4 bb b--silver" :: attributes
     |> H.h2
 
 h3 : List (Attribute msg) -> List (Html msg) -> Html msg
