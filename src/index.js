@@ -56,13 +56,13 @@ const interactiveButtonStyles = {
 
 const buttonStyles = {
   "border-radius": "0.5rem",
-  "padding-top": "0.5rem",
-  "padding-bottom": "0.5rem",
-  "padding-left": "1rem",
-  "padding-right": "1rem",
+  "padding-top": "1rem",
+  "padding-bottom": "1rem",
+  "padding-left": "2rem",
+  "padding-right": "2rem",
   "font-family": "Raleway, sans-serif",
   "font-weight": "bold",
-  "font-size": fontSize
+  "font-size": "1.25rem"
 };
 
 const shopifyOptions = {

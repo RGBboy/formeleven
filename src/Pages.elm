@@ -91,15 +91,21 @@ productPage product =
             [ C.soldOut
             , C.cart
             ]
+    titleDescription =
+      [ H.h1 [ A.class "f3 fw4 mb2 mt4 mt2-ns measure" ] [ H.text product.title ]
+      , H.p [ A.class "f3 fw2 mv2 measure" ] [ H.text <| C.formatGBP price ]
+      ]
   in
     C.layout
       [ H.div [ A.class "ph2" ] [ C.backButton ]
+      , H.div [ A.class "db dn-ns ph2" ]
+          titleDescription
       , H.div [ A.class "flex mv3 flex-wrap" ]
           [ H.div [ A.class "w-100 w-50-ns ph1" ]
               [ gallery <| nodeListList product.images ]
           , H.div [ A.class "w-100 w-50-ns ph2" ]
-              [ H.h1 [ A.class "f3 fw4 mv2 measure" ] [ H.text product.title ]
-              , H.p [ A.class "f3 fw2 mv2 measure" ] [ H.text <| C.formatGBP price ]
+              [ H.div [ A.class "dn db-ns" ]
+                  titleDescription
               , buyButton
               , H.div [ A.class "f4 fw2 measure" ] [ H.text product.descriptionHtml ] -- Does this work?
               ]
@@ -110,7 +116,7 @@ productPage product =
 gallery : List Image -> Html msg
 gallery images =
   H.div
-    [ A.class "flex flex-wrap" ]
+    [ A.class "flex flex-wrap mb3" ]
     <| List.concat
     <| List.indexedMap galleryItem images
 
