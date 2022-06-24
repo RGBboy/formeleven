@@ -17,7 +17,7 @@ ShopifyBuy.UI.onReady(client).then(function (ui) {
   if (buttonElements.length == 0 && cartElement) {
     ui.createComponent("cart", {
       node: cartElement,
-      moneyFormat: "%C2%A3%7B%7Bamount%7D%7D",
+      moneyFormat: moneyFormat,
       options: shopifyOptions
     });
   } else {
@@ -26,13 +26,15 @@ ShopifyBuy.UI.onReady(client).then(function (ui) {
       ui.createComponent("product", {
         id: id,
         node: element,
-        moneyFormat: "%24%7B%7Bamount%7D%7D",
+        moneyFormat: moneyFormat,
         options: shopifyOptions
       });
     });
   };
 
 });
+
+const moneyFormat = "%C2%A3%7B%7Bamount%7D%7D";
 
 const fontSize = "1rem";
 
