@@ -172,11 +172,12 @@ productListView products =
   let
     content = List.map productListItem products
   in
-    C.tileLayout content
+    H.div [ A.class "flex flex-wrap mv3" ] content
 
 productListItem : Product -> Html msg
 productListItem product =
   let
+    localId = localIdFromGlobalId product.id
     price = product.priceRange.maxVariantPrice.amount
     productPath = productPathFromHandle product.handle
     href = productPath ++ ".html"
@@ -186,36 +187,32 @@ productListItem product =
         True ->
           []
         False ->
-          [ H.div [ A.class "absolute top-0 right-0"]
+          [ H.div [ A.class "absolute top-1 right-1"]
               [ C.soldOut]
           ]
   in
     H.a
-      [ A.class "hide-child w-100 w-third-m w-25-l link overflow-hidden pa2 relative"
+      [ A.class "link black dim relative w-100 w-third-m w-25-l pa2"
       , A.href href
       ]
       <| List.append soldOut
-      [ H.img
-          [ A.class "db"
-          , A.src src
-          ]
-          []
-      , H.div
-          [ A.class "child absolute top-0 right-0 bottom-0 left-0" ]
-          [ H.div
-              [ A.class "absolute top-0 right-0 bottom-0 left-0 z-1 tc black flex flex-column justify-center" ]
-              [ H.h2
-                  [ A.class "f4 fw4 mv1sho" ]
-                  [ H.text product.title ]
-              , H.p
-                  [ A.class "f4 fw2 mv1" ]
-                  [ H.text <| C.formatGBP price ]
-              ]
-          , H.div
-              [ A.class "absolute top-0 right-0 bottom-0 left-0 bg-white o-60" ]
-              []
-          ]
-      ]
+        [ H.div
+            [ A.class "br2 ba b--black-10 w-100 flex flex-column-reverse" ]
+            [ H.div [ A.class "self-start-ns pa2" ]
+                [ H.h2
+                    [ A.class "f4 f5-ns fw4 mv1" ]
+                    [ H.text product.title ]
+                , H.p
+                    [ A.class "f4 f5-ns fw2 mv1" ]
+                    [ H.text <| C.formatGBP price ]
+                ]
+            , H.img
+                [ A.class "db"
+                , A.src src
+                ]
+                []
+            ]
+        ]
 
 homePage : ProductCollection -> Html msg
 homePage collection =
