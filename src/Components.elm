@@ -215,6 +215,7 @@ soldOut =
 cart : Html msg
 cart = H.div [ A.id "cart" ] []
 
+-- Currently price comes through with a single decimal place, hence adding a 0
 formatGBP : String -> String
 formatGBP price =
-  "£ " ++ price
+  "£" ++ price ++ "0"
