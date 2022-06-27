@@ -4,7 +4,7 @@ import GraphiQL from 'graphiql';
 import { createGraphiQLFetcher } from '@graphiql/toolkit';
 
 const fetcher = createGraphiQLFetcher(
-  { url: 'https://shop.formeleven.com/api/2022-07/graphql.json'
+  { url: process.env.SHOPIFY_ENDPOINT
   , headers : {
       "X-Shopify-Storefront-Access-Token": process.env.SHOPIFY_ACCESS_TOKEN
     }

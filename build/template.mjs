@@ -50,4 +50,4 @@ ${body}
 </html>
 `;
 
-exports = module.exports = template;
+export default template;
