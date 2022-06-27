@@ -31,7 +31,7 @@ header =
         ]
         [ H.img
             [ A.class "h3 h4-l"
-            , A.src "/img/logo-512x512.png"
+            , A.src "/frontend/img/logo-512x512.png"
             ] []
         , H.h1 [ A.class "f3 f2-l fw3 ttu self-end mv0" ]
             [ H.text "Form "
@@ -98,7 +98,7 @@ footer =
         , H.text " All Rights Reserved | "
         , H.a
             [ A.class "link white underline dim"
-            , A.href "/terms.html"
+            , A.href "/frontend/terms.html"
             , A.title "Terms and Conditions"
             ]
             [ H.text "T&Cs"]

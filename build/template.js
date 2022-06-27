@@ -13,19 +13,19 @@ const template = (body) =>
   <meta property="og:url" content="">
   <meta property="og:image" content="">
 
-  <link rel="manifest" href="/site.webmanifest">
-  <link rel="apple-touch-icon" href="/icon.png">
+  <link rel="manifest" href="/frontend/site.webmanifest">
+  <link rel="apple-touch-icon" href="/frontend/icon.png">
 
   <link rel="stylesheet" href="https://unpkg.com/tachyons@4/css/tachyons.min.css">
 
   <meta name="theme-color" content="#fafafa">
 
   <style>
-    @import url('/fonts.css');
-    @import url('/style.css');
+    @import url('/frontend/fonts.css');
+    @import url('/frontend/style.css');
   </style>
 
-  <script type="module" src="/index.js"></script>
+  <script type="module" src="/src/index.js"></script>
 
   <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
 

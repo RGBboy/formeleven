@@ -1,6 +1,8 @@
+.env
 .parcel-cache
 build/elm.js
 frontend/*.html
+!frontend/graphiql.html
 frontend/products
 frontend/products/*.html
 dist

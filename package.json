@@ -5,10 +5,6 @@
   "keywords": "",
   "license": "",
   "author": "",
-  "alias": {
-    "./index.js": "./src/index.js",
-    "./!(frontend|src)/**": "./frontend/$1/$2"
-  },
   "scripts": {
     "build": "npm run init && npm run build-elm && npm run build-html && npm run build-frontend",
     "build-elm": "elm make ./src/Build.elm --output /var/tmp/elm.js && sed \"s/'REPLACE_ME_WITH_JSON_STRINGIFY'/JSON.stringify(x)/g\" /var/tmp/elm.js > ./build/elm.js",
@@ -16,7 +12,7 @@
     "build-html": "node build/index.js",
     "clean-dist": "rm -rf dist/*",
     "copy-files": "cp static/* dist",
-    "dev": "parcel frontend/index.html",
+    "dev": "parcel frontend/index.html frontend/graphiql.html",
     "init": "npm run clean-dist && npm run copy-files",
     "start": "npm run init && npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -25,7 +21,13 @@
     "@parcel/packager-raw-url": "^2.6.1",
     "@parcel/transformer-elm": "^2.6.1",
     "@parcel/transformer-webmanifest": "^2.6.1",
-    "parcel": "^2.6.1"
+    "parcel": "^2.6.1",
+    "graphiql": "^1.9.9",
+    "graphql": "^16.5.0",
+    "process": "^0.11.10",
+    "punycode": "^2.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "dependencies": {
     "elm": "^0.19.1-5",

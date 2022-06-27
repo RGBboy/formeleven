@@ -180,7 +180,7 @@ productListItem product =
     localId = localIdFromGlobalId product.id
     price = product.priceRange.maxVariantPrice.amount
     productPath = productPathFromHandle product.handle
-    href = productPath ++ ".html"
+    href = "/frontend" ++ productPath ++ ".html"
     src = product.featuredImage.url
     soldOut =
       case product.availableForSale of
@@ -230,8 +230,8 @@ homePage collection =
                   "Murmur"
                   "Recycled&nbsp;Bioplastic, Ceramic, Light&nbsp;Fitting"
                 ]
-            , C.tileImage "/img/512x512/murmur.jpg"
-            , C.tileImage "/img/512x512/murmur-close-up.jpg"
+            , C.tileImage "/frontend/img/512x512/murmur.jpg"
+            , C.tileImage "/frontend/img/512x512/murmur-close-up.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
@@ -239,12 +239,12 @@ homePage collection =
                     "Chimney Triplet"
                     "Set of three small stoneware bud vases. Each a bold, simple shape, inspired by British, brutalist forms."
                 ]
-            , C.tileImage "/img/512x512/chimney-triplet-004.jpg"
-            , C.tileImage "/img/512x512/chimney-triplet-002.jpg"
+            , C.tileImage "/frontend/img/512x512/chimney-triplet-004.jpg"
+            , C.tileImage "/frontend/img/512x512/chimney-triplet-002.jpg"
             , C.tileSpacerM
-            , C.tileImage "/img/512x512/chimney-triplet-003.jpg"
+            , C.tileImage "/frontend/img/512x512/chimney-triplet-003.jpg"
             , C.tileSpacerL
-            , C.tileImage "/img/512x512/chimney-triplet-001.jpg"
+            , C.tileImage "/frontend/img/512x512/chimney-triplet-001.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
@@ -252,10 +252,10 @@ homePage collection =
                     "Growth"
                     "Digital"
                 ]
-            , C.tileImage "/img/512x512/growth-vase-001-3.jpg"
-            , C.tileImage "/img/512x512/growth-vase-002-3.jpg"
+            , C.tileImage "/frontend/img/512x512/growth-vase-001-3.jpg"
+            , C.tileImage "/frontend/img/512x512/growth-vase-002-3.jpg"
             , C.tileSpacerM
-            , C.tileImage "/img/512x512/growth-vase-003-3.jpg"
+            , C.tileImage "/frontend/img/512x512/growth-vase-003-3.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
@@ -263,10 +263,10 @@ homePage collection =
                     "Inflation"
                     "Digital"
                 ]
-            , C.tileImage "/img/512x512/inflation-001.jpg"
-            , C.tileImage "/img/512x512/inflation-002.jpg"
+            , C.tileImage "/frontend/img/512x512/inflation-001.jpg"
+            , C.tileImage "/frontend/img/512x512/inflation-002.jpg"
             , C.tileSpacerM
-            , C.tileImage "/img/512x512/inflation-003.jpg"
+            , C.tileImage "/frontend/img/512x512/inflation-003.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
@@ -274,8 +274,8 @@ homePage collection =
                     "Seed"
                     "Porcelain"
                 ]
-            , C.tileImage "/img/512x512/seed.jpg"
-            , C.tileImage "/img/512x512/seed-triplet.jpg"
+            , C.tileImage "/frontend/img/512x512/seed.jpg"
+            , C.tileImage "/frontend/img/512x512/seed-triplet.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
@@ -283,10 +283,10 @@ homePage collection =
                     "Noise"
                     "Digital"
                 ]
-            , C.tileImage "/img/512x512/spiral-brick-cell-001.jpg"
-            , C.tileImage "/img/512x512/spiral-brick-voronoi-001.jpg"
+            , C.tileImage "/frontend/img/512x512/spiral-brick-cell-001.jpg"
+            , C.tileImage "/frontend/img/512x512/spiral-brick-voronoi-001.jpg"
             , C.tileSpacerM
-            , C.tileImage "/img/512x512/spiral-distorted-noise-001.jpg"
+            , C.tileImage "/frontend/img/512x512/spiral-distorted-noise-001.jpg"
             ]
         , C.tileLayout
             [ C.tileFirst
@@ -294,8 +294,8 @@ homePage collection =
                     "Epicycloid"
                     "Digital"
                 ]
-            , C.tileImage "/img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
-            , C.tileImage "/img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
+            , C.tileImage "/frontend/img/512x512/spirograph-lerp-3-5-0-16-top.jpg"
+            , C.tileImage "/frontend/img/512x512/spirograph-lerp-7-4-0-7-top.jpg"
             ]
         ]
     ]
