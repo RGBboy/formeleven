@@ -120,11 +120,13 @@ tileFirst =
   tileExtra [ A.class "tr-ns self-end-ns" ]
 
 tileImage : String -> Html msg
-tileImage src =
+tileImage url =
   tileExtra []
     [ H.img
-      [ A.class "db bg-light-gray"
-      , A.src src
+      [ A.class "db mw-100 h-auto bg-light-gray"
+      , A.src url
+      , A.width 512
+      , A.height 512
       ]
       []
     ]

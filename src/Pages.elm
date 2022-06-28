@@ -147,8 +147,10 @@ galleryItem index { url } =
         ]
         [ H.span [ A.class "db pv1 ph1" ]
             [ H.img
-                [ A.class "db"
+                [ A.class "db mw-100 h-auto bg-light-gray"
                 , A.src url
+                , A.width 512
+                , A.height 512
                 ]
                 []
             ]
@@ -158,8 +160,10 @@ galleryItem index { url } =
         , A.class "order-0 ph1 pb1"
         ]
         [ H.img
-            [ A.class "db"
+            [ A.class "db mw-100 h-auto bg-light-gray"
             , A.src url
+            , A.width 512
+            , A.height 512
             ]
             []
         ]
@@ -181,7 +185,7 @@ productListItem product =
     price = product.priceRange.maxVariantPrice.amount
     productPath = productPathFromHandle product.handle
     href = "/frontend" ++ productPath ++ ".html"
-    src = product.featuredImage.url
+    url = product.featuredImage.url
     soldOut =
       case product.availableForSale of
         True ->
@@ -207,8 +211,10 @@ productListItem product =
                     [ H.text <| C.formatGBP price ]
                 ]
             , H.img
-                [ A.class "db"
-                , A.src src
+                [ A.class "db mw-100 h-auto bg-light-gray"
+                , A.src url
+                , A.width 512
+                , A.height 512
                 ]
                 []
             ]
