@@ -9,7 +9,7 @@
     "build": "npm run init && npm run build-elm && npm run build-html && npm run build-frontend",
     "build-elm": "elm make ./src/Build.elm --output /var/tmp/elm.js && sed \"s/'REPLACE_ME_WITH_JSON_STRINGIFY'/JSON.stringify(x)/g\" /var/tmp/elm.js > ./build/elm.js",
     "build-frontend": "parcel build frontend/index.html",
-    "build-html": "node build/index.js",
+    "build-html": "node build/index.mjs",
     "clean-dist": "rm -rf dist/*",
     "copy-files": "cp static/* dist",
     "dev": "parcel frontend/index.html frontend/graphiql.html",
