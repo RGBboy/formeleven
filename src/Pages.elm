@@ -3,11 +3,12 @@ module Pages exposing (DataModel, generate)
 import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
-
+import ProductFeed exposing (ProductFeedData)
 
 
 type alias DataModel =
   { collection : ProductCollection
+  , feed : ProductFeedData
   }
 
 type alias ProductCollection =
@@ -50,14 +51,15 @@ nodeListList : NodeList a -> List a
 nodeListList { nodes } = nodes
 
 generate : DataModel -> List (String, Html msg)
-generate { collection } =
+generate { collection, feed } =
   let
     productPages = nodeListList collection.products
       |> List.map generateProductPage
   in
     List.append
-      [ ("/", homePage collection)
-      , ("/terms", termsPage)
+      [ ("/index.html", homePage collection)
+      , ("/terms.html", termsPage)
+      , ("/product-feed.xml", ProductFeed.generate feed)
       ]
       productPages
 
@@ -67,7 +69,7 @@ localIdFromGlobalId globalId =
 
 productPathFromHandle : String -> String
 productPathFromHandle handle =
-  String.append "/products/" handle
+  "/products/" ++ handle ++ ".html"
 
 -- Product Page
 
@@ -184,7 +186,7 @@ productListItem product =
     localId = localIdFromGlobalId product.id
     price = product.priceRange.maxVariantPrice.amount
     productPath = productPathFromHandle product.handle
-    href = "/frontend" ++ productPath ++ ".html"
+    href = "/frontend" ++ productPath
     url = product.featuredImage.url
     soldOut =
       case product.availableForSale of

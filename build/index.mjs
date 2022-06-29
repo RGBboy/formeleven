@@ -4,13 +4,26 @@ import { GraphQLClient, gql } from 'graphql-request';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import template from './template.mjs';
+import feedTemplate from './feed-template.mjs';
 import Elm from './elm.js';
 
 const render = ([key, value]) => {
-  key = (key === '/') ? '/index.html' : key + '.html';
+  const ext = path.extname(key);
   const filePath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'frontend', key);
-  fs.writeFileSync(filePath, template(value));
-  console.log(`Successfully generated ${filePath}`);
+
+  switch (ext) {
+    case ".html":
+        fs.writeFileSync(filePath, template(value));
+        console.log(`Successfully generated ${filePath}`);
+      break;
+    case ".xml":
+        fs.writeFileSync(filePath, feedTemplate(value));
+        console.log(`Successfully generated ${filePath}`);
+      break;
+    default:
+      console.log(`Uknown extension to format`);
+  }
+
 };
 
 const query = gql`
@@ -52,6 +65,34 @@ const query = gql`
     	}
   	}
 	}
+
+  feed: collection(id: "gid://shopify/Collection/291476668611") {
+    products(first: 21) {
+      nodes {
+        id
+        handle
+        title
+        description
+        productType
+        availableForSale
+        priceRange {
+          maxVariantPrice {
+            amount
+            currencyCode
+          }
+        }
+        images(first:10){
+          nodes {
+            url(transform: {
+              maxWidth: 1024
+              maxHeight: 1024
+            })
+          }
+        }
+      }
+    }
+  }
+
 }
 `
 

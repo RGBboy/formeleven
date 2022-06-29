@@ -8,19 +8,21 @@
   "scripts": {
     "build": "npm run init && npm run build-elm && npm run build-html && npm run build-frontend",
     "build-elm": "elm make ./src/Build.elm --output /var/tmp/elm.js && sed \"s/'REPLACE_ME_WITH_JSON_STRINGIFY'/JSON.stringify(x)/g\" /var/tmp/elm.js > ./build/elm.js",
-    "build-frontend": "parcel build frontend/index.html",
+    "build-frontend": "parcel build frontend/index.html frontend/product-feed.xml",
     "build-html": "node build/index.mjs",
     "clean-dist": "rm -rf dist/*",
     "copy-files": "cp static/* dist",
-    "dev": "parcel frontend/index.html frontend/graphiql.html",
+    "dev": "parcel frontend/index.html frontend/graphiql.html frontend/product-feed.xml",
     "init": "npm run clean-dist && npm run copy-files",
     "start": "npm run init && npm run dev",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
     "@parcel/packager-raw-url": "^2.6.1",
+    "@parcel/packager-xml": "^2.6.1",
     "@parcel/transformer-elm": "^2.6.1",
     "@parcel/transformer-webmanifest": "^2.6.1",
+    "@parcel/transformer-xml": "^2.6.1",
     "dotenv": "^16.0.1",
     "graphiql": "^1.9.9",
     "graphql": "^16.5.0",

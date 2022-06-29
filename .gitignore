@@ -5,6 +5,7 @@ frontend/*.html
 !frontend/graphiql.html
 frontend/products
 frontend/products/*.html
+frontend/*.xml
 dist
 elm-stuff
 node_modules
