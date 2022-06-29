@@ -128,7 +128,7 @@ generateItem product =
           , H.node "g:title" [] [ H.text product.title ]
           , H.node "g:description" [] [ H.text product.description ]
           , itemLink product
-          , H.node "g:brand" [] [ H.text "Form Eleven" ]
+          , H.node "g:identifier_exists" [] [ H.text "no" ]
           , H.node "g:condition" [] [ H.text "new" ]
           , itemAvailability product.availableForSale
           , itemPrice product.priceRange.maxVariantPrice
