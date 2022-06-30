@@ -30,8 +30,10 @@ header =
         , A.href "/"
         ]
         [ H.img
-            [ A.class "h3 h4-l"
+            [ A.class "h3 h4-l w-auto"
             , A.src "/frontend/img/logo-512x512.png"
+            , A.width 512
+            , A.height 512
             ] []
         , H.h1 [ A.class "f3 f2-l fw3 ttu self-end mv0" ]
             [ H.text "Form "
