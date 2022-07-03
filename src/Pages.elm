@@ -74,7 +74,7 @@ isHtml : String -> Bool
 isHtml page =
   case (String.right 5 page) of
     ".html" -> True
-    _ -> True
+    _ -> False
 
 localIdFromGlobalId : String -> String
 localIdFromGlobalId globalId =
