@@ -4,7 +4,7 @@ import { GraphQLClient, gql } from 'graphql-request';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import template from './template.mjs';
-import feedTemplate from './feed-template.mjs';
+import xmlTemplate from './xml-template.mjs';
 import Elm from './elm.js';
 
 const render = ([key, value]) => {
@@ -17,7 +17,7 @@ const render = ([key, value]) => {
         console.log(`Successfully generated ${filePath}`);
       break;
     case ".xml":
-        fs.writeFileSync(filePath, feedTemplate(value));
+        fs.writeFileSync(filePath, xmlTemplate(value));
         console.log(`Successfully generated ${filePath}`);
       break;
     default:

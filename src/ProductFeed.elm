@@ -46,13 +46,19 @@ generate { products } =
     items = nodeListList products
       |> List.map generateItem
   in
-    H.node "channel" []
-      <| List.append
-          [ H.node "title" [] [ H.text "Form Eleven Store" ]
-          -- , H.node "link" [] [ H.text "test link" ]
-          -- , H.node "description" [] [ H.text "test desciption" ]
-          ]
-          items
+    H.node "rss"
+      [ A.attribute "xmlns:g" "http://base.google.com/ns/1.0" 
+      , A.attribute "version" "2.0"
+      ]
+      [ H.node "channel" []
+        <| List.append
+            [ H.node "title" [] [ H.text "Form Eleven Store" ]
+            -- , H.node "link" [] [ H.text "test link" ]
+            -- , H.node "description" [] [ H.text "test desciption" ]
+            ]
+            items
+      ]
+
 
 itemId : String -> Html msg
 itemId id =

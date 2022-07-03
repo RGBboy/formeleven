@@ -4,6 +4,7 @@ import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
 import ProductFeed exposing (ProductFeedData)
+import SiteMap
 
 
 type alias DataModel =
@@ -55,13 +56,25 @@ generate { collection, feed } =
   let
     productPages = nodeListList collection.products
       |> List.map generateProductPage
+    allPages =
+      List.append
+        [ ("/index.html", homePage collection)
+        , ("/terms.html", termsPage)
+        , ("/product-feed.xml", ProductFeed.generate feed)
+        ]
+        productPages
+    siteMap =
+      List.map Tuple.first allPages
+        |> List.filter isHtml
+        |> SiteMap.generate
   in
-    List.append
-      [ ("/index.html", homePage collection)
-      , ("/terms.html", termsPage)
-      , ("/product-feed.xml", ProductFeed.generate feed)
-      ]
-      productPages
+    ("/sitemap.xml", siteMap) :: allPages
+
+isHtml : String -> Bool
+isHtml page =
+  case (String.right 5 page) of
+    ".html" -> True
+    _ -> True
 
 localIdFromGlobalId : String -> String
 localIdFromGlobalId globalId =
