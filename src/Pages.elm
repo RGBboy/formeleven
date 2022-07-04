@@ -341,7 +341,7 @@ termsPage unparsedRefundPolicy =
         |> Html.Parser.Util.toVirtualDom
     refundPolicy =
       List.append
-        [ C.h3 [ A.id "refund"] [ H.text "Refund Policy" ] ]
+        [ C.h3 [ A.id "refund"] [ H.text "Return & Refund Policy" ] ]
         parsedRefundPolicy
     privacyPolicy =
       [ C.h3 [ A.id "privacy"] [ H.text "Privacy Policy" ]
