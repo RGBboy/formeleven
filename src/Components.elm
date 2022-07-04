@@ -103,7 +103,7 @@ footer =
             , A.href "/frontend/terms.html"
             , A.title "Terms and Conditions"
             ]
-            [ H.text "T&Cs"]
+            [ H.text "Terms & Conditions"]
         ]
     ]
 

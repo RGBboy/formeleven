@@ -3,6 +3,8 @@ module Pages exposing (DataModel, generate)
 import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
+import Html.Parser
+import Html.Parser.Util
 import ProductFeed exposing (ProductFeedData)
 import SiteMap
 
@@ -10,6 +12,7 @@ import SiteMap
 type alias DataModel =
   { collection : ProductCollection
   , feed : ProductFeedData
+  , shop : ShopData
   }
 
 type alias ProductCollection =
@@ -23,7 +26,7 @@ type alias ProductCollection =
 type alias Product =
   { id : String
   , handle : String
-  , title: String
+  , title : String
   , descriptionHtml : String
   , availableForSale : Bool
   , priceRange : { maxVariantPrice : Money }
@@ -31,35 +34,39 @@ type alias Product =
   , images : NodeList Image
   }
 
+type alias ShopData =
+  { refundPolicy : { body : String }
+  }
+
 -- Todo: Change this type to an actual monetary type.
 -- Perhaps move to use a JSON.Value for flags then decode to
 -- correctly handle input data and errors
 type alias Money =
-  { amount: String
+  { amount : String
   , currencyCode : String
   }
 
 type alias Image =
-  { altText: Maybe String
+  { altText : Maybe String
   , url : String -- Ideally this should be type URL
   }
 
 type alias NodeList a =
-  { nodes: List a
+  { nodes : List a
   }
 
 nodeListList : NodeList a -> List a
 nodeListList { nodes } = nodes
 
 generate : DataModel -> List (String, Html msg)
-generate { collection, feed } =
+generate { collection, feed, shop } =
   let
     productPages = nodeListList collection.products
       |> List.map generateProductPage
     allPages =
       List.append
         [ ("/index.html", homePage collection)
-        , ("/terms.html", termsPage)
+        , ("/terms.html", termsPage shop.refundPolicy.body )
         , ("/product-feed.xml", ProductFeed.generate feed)
         ]
         productPages
@@ -325,51 +332,55 @@ homePage collection =
 
 -- At some point figure out how best to cater for large blocks of typography.
 -- Perhaps dillonkearns/elm-markdown would be useful to achieve this.
-termsPage : Html msg
-termsPage =
-  C.layout
-    [ C.section
-        [ A.class "mw6 center"
-        , A.id "terms"
-        ]
-        [ C.h2 [] [ H.text "Terms & Conditions"]
-        , C.h3 [ A.id "privacy"] [ H.text "Privacy Policy" ]
-        , C.p """
+termsPage : String -> Html msg
+termsPage unparsedRefundPolicy =
+  let
+    parsedRefundPolicy =
+      Html.Parser.run unparsedRefundPolicy
+        |> Result.withDefault []
+        |> Html.Parser.Util.toVirtualDom
+    refundPolicy =
+      List.append
+        [ C.h3 [ A.id "refund"] [ H.text "Refund Policy" ] ]
+        parsedRefundPolicy
+    privacyPolicy =
+      [ C.h3 [ A.id "privacy"] [ H.text "Privacy Policy" ]
+      , C.p """
 This page is used to inform website visitors regarding our policies with the
 collection, use, and disclosure of Personal Information.
 """
-        , C.h4 [] [ H.text "Information I Collect" ]
-        , C.p """
+      , C.h4 [] [ H.text "Information I Collect" ]
+      , C.p """
 To subscribe to my mailing list you must provide me with certain information
 such as your name and email address.
 """
-        , C.p """
+      , C.p """
 To fulfil your order, you must provide me with certain information (which you
 authorised Etsy to provide to me), such as your name, email address,
 postal address, payment information, and the details of the product that you’re
 ordering. You may also choose to provide me with additional personal
 information (for a custom order for example), if you contact me directly.
 """
-        , C.h4 [] [ H.text "Why I Need Your Information and How I Use It" ]
-        , C.p """
+      , C.h4 [] [ H.text "Why I Need Your Information and How I Use It" ]
+      , C.p """
 I rely on a number of legal bases to collect, use, and share your information,
 including:
 """
-        , C.ul
-            [ C.li """
+      , C.ul
+          [ C.li """
 as needed to provide my services, such as when I use your information to fulfil
 your order, to settle disputes, or to provide customer support;
 """
-            , C.li """
+          , C.li """
 when you have provided your affirmative consent, which you may revoke at any
 time, such as by subscribing to my mailing list;
 """
-            , C.li """
+          , C.li """
 if necessary to comply with a legal obligation or court order or in connection
-  with a legal claim, such as retaining information about your purchases if
-    required by tax law; and
+with a legal claim, such as retaining information about your purchases if
+required by tax law; and
 """
-            , C.li """
+          , C.li """
 as necessary for the purpose of my legitimate interests, if those legitimate
 interests are not overridden by your rights or interests, such as 1)
 providing and improving my services. I use your information to provide the
@@ -378,30 +389,30 @@ and 2) Compliance with the Etsy Seller Policy and Terms of Use. I use your
 information as necessary to comply with my obligations under the Etsy Seller
 Policy and Terms of Use.
 """
-            ]
-        , C.h4 [] [ H.text "Information Sharing and Disclosure" ]
-        , C.p """
+          ]
+      , C.h4 [] [ H.text "Information Sharing and Disclosure" ]
+      , C.p """
 Information about my customers is important to my business. I share your
 personal information for very limited reasons and in limited circumstances,
 as follows:
 """
-        , C.ul
-            [ C.li """
+      , C.ul
+          [ C.li """
 Etsy. I share information with Etsy as necessary to provide you my services and
 comply with my obligations under both the Etsy Seller Policy and Etsy Terms of
 Use.
 """
-            , C.li """
+          , C.li """
 Service providers. I engage certain trusted third parties to perform functions
 and provide services to my shop, such as delivery companies. I will share your
 personal information with these third parties, but only to the extent necessary
 to perform these services.
 """
-            , C.li """
+          , C.li """
 Business transfers. If I sell or merge my business, I may disclose your
 information as part of that transaction, only to the extent permitted by law.
 """
-            , C.li """
+          , C.li """
 Compliance with laws. I may collect, use, retain, and share your information if
 I have a good faith belief that it is reasonably necessary to: (a) respond to
 legal process or to government requests; (b) enforce my agreements, terms and
@@ -409,17 +420,17 @@ policies; (c) prevent, investigate, and address fraud and other illegal
 activity, security, or technical issues; or (d) protect the rights, property,
 and safety of my customers, or others.
 """
-            ]
-        , C.h4 [] [ H.text "Data Retention" ]
-        , C.p """
+          ]
+      , C.h4 [] [ H.text "Data Retention" ]
+      , C.p """
 I retain your personal information only for as long as necessary to provide you
 with my services and as described in my Privacy Policy. However, I may also be
 required to retain this information to comply with my legal and regulatory
 obligations, to resolve disputes, and to enforce my agreements. I generally
 keep your data for the following time period: 4 years.
 """
-        , C.h4 [] [ H.text "Transfers of Personal Information Outside the EU" ]
-        , C.p """
+      , C.h4 [] [ H.text "Transfers of Personal Information Outside the EU" ]
+      , C.p """
 I may store and process your information through third-party hosting services
 in the US and other jurisdictions. As a result, I may transfer your personal
 information to a jurisdiction with different data protection and government
@@ -427,38 +438,51 @@ surveillance laws than your jurisdiction. If I am deemed to transfer
 information about you outside of the EU, I rely on Privacy Shield as the legal
 basis for the transfer, as Google Cloud is Privacy Shield certified.
 """
-        , C.h4 [] [ H.text "Your Rights" ]
-        , C.p """
+      , C.h4 [] [ H.text "Your Rights" ]
+      , C.p """
 If you reside in certain territories, including the EU, you have a number of
 rights in relation to your personal information. While some of these rights
 apply generally, certain rights apply only in certain limited cases. I
 describe these rights below:
 """
-        , C.ul
-            [ C.li """
+      , C.ul
+          [ C.li """
 Access. You may have the right to access and receive a copy of the personal
 information I hold about you by contacting me using the contact details
 provided by Etsy or via <a class="link black underline dim"
 href="mailto:hello@formeleven.com">hello@formeleven.com</a>.
 """
-            , C.li """
+          , C.li """
 Change, restrict, delete. You may also have rights to change, restrict my use
 of, or delete your personal information. Absent exceptional circumstances (like
 where I am required to store data for legal reasons) I will generally delete
 your personal information upon request.
 """
-            , C.li """
+          , C.li """
 Object. You can object to (i) my processing of some of your information based
 on my legitimate interests and (ii) receiving marketing messages from me after
 providing your express consent to receive them. In such cases, I will delete
 your personal information unless I have compelling and legitimate grounds to
 continue using that information or if it is needed for legal reasons.
 """
-            , C.li """
+          , C.li """
 Complain. If you reside in the EU and wish to raise a concern about my use of
 your information (and without prejudice to any other rights you may have), you
 have the right to do so with your local data protection authority.
 """
-            ]
+          ]
+      ]
+    body =
+      List.concat
+        [ [ C.h2 [] [ H.text "Terms & Conditions"] ]
+        , refundPolicy
+        , privacyPolicy
         ]
+  in
+  C.layout
+    [ C.section
+        [ A.class "mw6 center"
+        , A.id "terms"
+        ]
+        body
     ]

@@ -93,6 +93,12 @@ const query = gql`
     }
   }
 
+  shop {
+    refundPolicy {
+      body
+    }
+  }
+
 }
 `
 
