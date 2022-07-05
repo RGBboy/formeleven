@@ -1,11 +1,25 @@
-const template = (body) =>
+const tagsToReplace = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;'
+};
+
+function replaceTag(tag) {
+  return tagsToReplace[tag] || tag;
+}
+
+function sanitize(str) {
+  return str.replace(/[&<>]/g, replaceTag);
+}
+
+const template = (title, description, body) =>
 `<!doctype html>
 <html class="no-js" lang="en">
 
 <head>
   <meta charset="utf-8">
-  <title>Form Eleven</title>
-  <meta name="description" content="Combining digital fabrication, handmade ceramics and luminaires.">
+  <title>${sanitize(title)}</title>
+  <meta name="description" content="${sanitize(description)}">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <meta property="og:title" content="Form Eleven">

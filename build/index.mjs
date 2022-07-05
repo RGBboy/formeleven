@@ -7,17 +7,17 @@ import template from './template.mjs';
 import xmlTemplate from './xml-template.mjs';
 import Elm from './elm.js';
 
-const render = ([key, value]) => {
+const render = ([ key, { body, title, description } ]) => {
   const ext = path.extname(key);
   const filePath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'frontend', key);
 
   switch (ext) {
     case ".html":
-        fs.writeFileSync(filePath, template(value));
+        fs.writeFileSync(filePath, template(title, description, body));
         console.log(`Successfully generated ${filePath}`);
       break;
     case ".xml":
-        fs.writeFileSync(filePath, xmlTemplate(value));
+        fs.writeFileSync(filePath, xmlTemplate(body));
         console.log(`Successfully generated ${filePath}`);
       break;
     default:
@@ -38,6 +38,7 @@ const query = gql`
         id
         handle
         title
+        description
         descriptionHtml
         availableForSale
         priceRange {

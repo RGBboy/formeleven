@@ -1,4 +1,4 @@
-module Pages exposing (DataModel, generate)
+module Pages exposing (DataModel, Page, generate)
 
 import Components as C
 import Html as H exposing (Attribute, Html)
@@ -27,6 +27,7 @@ type alias Product =
   { id : String
   , handle : String
   , title : String
+  , description : String
   , descriptionHtml : String
   , availableForSale : Bool
   , priceRange : { maxVariantPrice : Money }
@@ -58,16 +59,35 @@ type alias NodeList a =
 nodeListList : NodeList a -> List a
 nodeListList { nodes } = nodes
 
-generate : DataModel -> List (String, Html msg)
+type alias Page msg =
+  { title : String
+  , description : String
+  , body : Html msg
+  }
+
+page : String -> String -> Html msg -> Page msg
+page title description body =
+  { title = title
+  , description = description
+  , body = body
+  }
+
+generate : DataModel -> List (String, Page msg)
 generate { collection, feed, shop } =
   let
     productPages = nodeListList collection.products
       |> List.map generateProductPage
     allPages =
       List.append
-        [ ("/index.html", homePage collection)
-        , ("/terms.html", termsPage shop.refundPolicy.body )
-        , ("/product-feed.xml", ProductFeed.generate feed)
+        [ ("/index.html"
+          , page "Form Eleven" "Combining digital fabrication, handmade ceramics and luminaires." (homePage collection)
+          )
+        , ("/terms.html"
+          , page "Terms & Conditions" "Terms & Conditions" (termsPage shop.refundPolicy.body)
+          )
+        , ("/product-feed.xml"
+          , page "" "" (ProductFeed.generate feed)
+          )
         ]
         productPages
     siteMap =
@@ -75,11 +95,11 @@ generate { collection, feed, shop } =
         |> List.filter isHtml
         |> SiteMap.generate
   in
-    ("/sitemap.xml", siteMap) :: allPages
+    ("/sitemap.xml", page "" "" siteMap) :: allPages
 
 isHtml : String -> Bool
-isHtml page =
-  case (String.right 5 page) of
+isHtml file =
+  case (String.right 5 file) of
     ".html" -> True
     _ -> False
 
@@ -91,12 +111,25 @@ productPathFromHandle : String -> String
 productPathFromHandle handle =
   "/products/" ++ handle ++ ".html"
 
+findMaxIndex : Int -> Int -> Int -> Int
+findMaxIndex max value acc =
+  if value > max then acc else value
+
+metaDescription : String -> String
+metaDescription description =
+  let
+    indices = String.indices "." description
+    maxValue = 160
+    index = List.foldl (findMaxIndex maxValue) 0 indices
+  in
+    String.slice 0 (index + 1) description
+
 -- Product Page
 
-generateProductPage : Product -> (String, Html msg)
+generateProductPage : Product -> (String, Page msg)
 generateProductPage product =
   ( productPathFromHandle product.handle
-  , productPage product
+  , page product.title (metaDescription product.description) (productPage product)
   )
 
 productPage : Product -> Html msg
@@ -117,6 +150,8 @@ productPage product =
       [ H.h1 [ A.class "f3 fw4 mb2 mt4 mt2-ns measure" ] [ H.text product.title ]
       , H.p [ A.class "f3 fw2 mv2 measure" ] [ H.text <| C.formatGBP price ]
       ]
+    -- At some point we will need to parse product.descriptionHtml for safety
+    content = H.text product.descriptionHtml
   in
     C.layout
       [ H.div [ A.class "ph2" ] [ C.backButton ]
@@ -129,7 +164,7 @@ productPage product =
               [ H.div [ A.class "dn db-ns" ]
                   titleDescription
               , buyButton
-              , H.div [ A.class "f4 fw2 measure" ] [ H.text product.descriptionHtml ] -- Does this work?
+              , H.div [ A.class "f4 fw2 measure" ] [ content ]
               ]
           ]
       ]

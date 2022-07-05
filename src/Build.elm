@@ -20,9 +20,15 @@ htmlToString html =
     Err error -> Decode.errorToString error
     Ok str -> nodeToStringWithOptions options str
 
-encodePage : (String, Html msg) -> (String, Encode.Value)
-encodePage (path, page) =
-  (path, htmlToString page |> Encode.string)
+encodePage : (String, Pages.Page msg) -> (String, Encode.Value)
+encodePage (path, { title, description, body } ) =
+  (path
+  , Encode.object
+      [ ( "title", Encode.string title )
+      , ( "description", Encode.string description )
+      , ( "body", htmlToString body |> Encode.string )
+      ]
+  )
 
 encodedPages : Pages.DataModel -> Encode.Value
 encodedPages data =
