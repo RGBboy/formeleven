@@ -98,6 +98,8 @@ footer =
         [ H.text "© 2022 "
         , H.b [ A.class "ttu" ] [ H.text "Form Eleven" ]
         , H.text " All Rights Reserved | "
+        , consentLink []
+        , H.text " | "
         , H.a
             [ A.class "link white underline dim"
             , A.href "/frontend/terms.html"
@@ -158,6 +160,19 @@ backButton =
     , A.href "/#shop"
     ]
     [ H.text "< back" ]
+
+consentLink : List (Attribute msg) -> Html msg
+consentLink attributes =
+  let
+    newAttributes =
+      List.append
+        [ A.id "cookie-consent"
+        , A.class "link white underline dim bg-transparent bn pointer"
+        , A.title "Cookie Consent"
+        ]
+        attributes
+  in
+    H.button newAttributes [ H.text "Cookie Consent"]
 
 -- LAYOUT
 section : List (Attribute msg) -> List (Html msg) -> Html msg

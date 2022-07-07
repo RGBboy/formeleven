@@ -1,6 +1,53 @@
-import { Elm } from "./Main.elm";
+import "dotenv/config";
+import { Elm } from "../frontend/elm.js";
 
-Elm.Main.init({ node: document.getElementById("newsletter") });
+Elm.Mailer.init({ node: document.getElementById("newsletter") });
+
+// Google Analytics
+
+const defaultConsent = {
+  ad_storage: "denied",
+  analytics_storage: "denied",
+  wait_for_update: 500
+};
+
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+
+gtag("consent", "default", defaultConsent);
+
+gtag("js", new Date());
+
+gtag("config", process.env.GA_PROPERTY);
+
+// Local Storage
+
+const localStorage = window.localStorage;
+
+const consentApp = Elm.Consent.init({
+  node: document.getElementById("cookie-consent"),
+  flags: localStorage.getItem("consent")
+});
+
+consentApp.ports.consentUpdate.subscribe((value) => {
+
+  // store change in local storage
+  localStorage.setItem("consent", JSON.stringify(value));
+
+  // Send updated consent to GA
+  let gaConsent = defaultConsent;
+  if (value && value.performance) {
+    gaConsent = {
+      ad_storage: "granted",
+      analytics_storage: "granted"
+    };
+  };
+
+  gtag("consent", "update", gaConsent);
+
+});
+
+
 
 // Note: requires shopify buy library to be loaded on the web page
 // <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>

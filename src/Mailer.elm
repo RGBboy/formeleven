@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Mailer exposing (..)
 
 import Browser
 import Html as H exposing (Html)
