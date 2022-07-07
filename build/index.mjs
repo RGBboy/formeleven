@@ -110,7 +110,6 @@ const gqlClient = new GraphQLClient(process.env.SHOPIFY_ENDPOINT, {
 });
 
 gqlClient.request(query).then((data) => {
-  // console.log(data)
   const builder = Elm.Elm.Build.init({ flags: data });
   const response = builder.ports.htmlOut;
   response.subscribe((pages) => {
