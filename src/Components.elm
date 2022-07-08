@@ -168,7 +168,7 @@ consentLink attributes =
       List.append
         [ A.id "cookie-consent"
         , A.class "link white underline dim bg-transparent bn pointer"
-        , A.title "Cookie Consent"
+        , A.title "Consent Preferences"
         ]
         attributes
   in
