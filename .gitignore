@@ -1,4 +1,4 @@
-.env
+.env*
 .parcel-cache
 build/elm.js
 frontend/elm.js
