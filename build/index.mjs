@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import * as dotenv from 'dotenv'
 import fs from 'filendir';
 import { GraphQLClient, gql } from 'graphql-request';
 import path, { dirname } from 'path';
@@ -7,13 +7,17 @@ import template from './template.mjs';
 import xmlTemplate from './xml-template.mjs';
 import Elm from './elm.js';
 
+const envString = process.env.NODE_ENV ? "." + process.env.NODE_ENV : "";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env" + envString)})
+
 const render = ([ key, { body, title, description } ]) => {
   const ext = path.extname(key);
   const filePath = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'frontend', key);
 
   switch (ext) {
     case ".html":
-        fs.writeFileSync(filePath, template(title, description, body));
+        fs.writeFileSync(filePath, template(title, description, body, process.env.GA_PROPERTY));
         console.log(`Successfully generated ${filePath}`);
       break;
     case ".xml":

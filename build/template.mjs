@@ -12,7 +12,7 @@ function sanitize(str) {
   return str.replace(/[&<>]/g, replaceTag);
 }
 
-const template = (title, description, body) =>
+const template = (title, description, body, gaProperty) =>
 `<!doctype html>
 <html class="no-js" lang="en">
 
@@ -44,7 +44,7 @@ const template = (title, description, body) =>
   <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-8G0BV1N2JQ"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=${gaProperty}"></script>
 
 </head>
 ${body}

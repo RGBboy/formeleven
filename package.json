@@ -6,7 +6,7 @@
   "license": "",
   "author": "",
   "scripts": {
-    "build": "NODE_ENV=prod npm run build-all",
+    "build": "NODE_ENV=production npm run build-all",
     "build-all": "npm run init && npm run elm-prod && npm run build-elm && npm run build-html && npm run build-frontend",
     "build-elm": "elm make ./src/Build.elm --output /var/tmp/elm.js && sed \"s/'REPLACE_ME_WITH_JSON_STRINGIFY'/JSON.stringify(x)/g\" /var/tmp/elm.js > ./build/elm.js",
     "build-frontend": "parcel build frontend/index.html frontend/product-feed.xml frontend/sitemap.xml",
