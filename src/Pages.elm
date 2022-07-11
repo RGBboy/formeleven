@@ -280,7 +280,8 @@ productListItem product =
 homePage : ProductCollection -> Html msg
 homePage collection =
   C.layout
-    [ C.section [ A.id "shop" ]
+    [ H.div [ A.class "dn" ] [ C.buyButton "7322682851523" ] -- Test Buy Button
+    , C.section [ A.id "shop" ]
         [ C.h2 [] [ H.text "Shop" ]
         , productListView <| nodeListList collection.products
         , C.cart

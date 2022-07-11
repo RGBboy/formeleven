@@ -3,6 +3,10 @@ import { Elm } from "../frontend/elm.js";
 
 Elm.Mailer.init({ node: document.getElementById("newsletter") });
 
+// Util
+
+const logger = (label) => (e) => console.log(label, e);
+
 // Google Analytics
 
 const defaultConsent = {
@@ -19,6 +23,33 @@ gtag("consent", "default", defaultConsent);
 gtag("js", new Date());
 
 gtag("config", process.env.GA_PROPERTY);
+
+if (process.env.AW_PROPERTY) {
+  gtag("config", process.env.AW_PROPERTY);
+}
+
+const trackConversion = (conversionID, eventID) => {
+  const track = trackConversionWithData(conversionID, eventID);
+  return () => track();
+};
+
+const trackConversionWithData = (conversionID, eventID) => (data) => {
+  const sendTo = `${conversionID}/${eventID}`;
+  const conversionData = {
+    "send_to": sendTo,
+    ...data
+  };
+  gtag("event", "conversion", conversionData);
+};
+
+const conversionID = process.env.AW_PROPERTY;
+const addToBasketEventID = process.env.AW_ADD_TO_BASKET_EVENT_ID;
+const beginCheckoutEventID = process.env.AW_BEGIN_CHECKOUT_EVENT_ID;
+const purchaseEventID = process.env.AW_PURCHASE_EVENT_ID;
+
+const trackAddToBasket = trackConversion(conversionID, addToBasketEventID);
+const trackBeginCheckout = trackConversion(conversionID, beginCheckoutEventID);
+const trackPurchase = trackConversionWithData(conversionID, purchaseEventID);
 
 // Local Storage
 
@@ -47,11 +78,39 @@ consentApp.ports.consentUpdate.subscribe((value) => {
 
 });
 
+// We use this to get the order state after checkout is complete
+// via the checkout pop up postMessage calls
+window.addEventListener("message", (msg) => {
+  let data;
+  try {
+    data = JSON.parse(msg.data);
+  } catch (err) {
+    data = {};
+  };
 
+  if (data.orderData) {
+    trackPurchase(data.orderData);
+    // unfortunately we have to reload the page to reset the cart
+    location.reload();
+  };
+});
 
-// Note: requires shopify buy library to be loaded on the web page
-// <script src="https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js"></script>
+// The code below needs to be added to shopify settings
+// checkout > order status page > additional scripts
+// <script>
+//   if (window.opener) {
+//     window.opener.postMessage(JSON.stringify({
+//       orderData: {
+//         "value": {{ checkout.subtotal_price | divided_by: 100.0 }},
+//         "currency": "{{ currency }}",
+//         "transaction_id": "{{ order_number }}"
+//       }
+//     }), "*");
+//   };
+// </script>
 
+// Note: requires shopify buy button js to be loaded on the web page
+// The one that we load has been modified to remove window.reload()
 const client = ShopifyBuy.buildClient({
   domain: "formeleven.myshopify.com",
   storefrontAccessToken: "be1c6fb5a5922fe3da659e0e48d6e157"
@@ -116,6 +175,10 @@ const buttonStyles = {
 
 const shopifyOptions = {
   "product": {
+    "events": {
+      addVariantToCart: trackAddToBasket,
+      openCheckout: trackBeginCheckout
+    },
     "styles": {
       "product": {
         "text-align": "left"
@@ -143,6 +206,9 @@ const shopifyOptions = {
     ]
   },
   "cart": {
+    "events": {
+      openCheckout: trackBeginCheckout
+    },
     "styles": {
       "button": {
         ...buttonStyles,
