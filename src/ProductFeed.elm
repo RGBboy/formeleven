@@ -121,6 +121,16 @@ itemProductType : String -> Html msg
 itemProductType value =
   H.node "g:product_type" [] [ H.text value ]
 
+-- we create this from Shopify > Product > ProductType
+-- and Shopify > Product > Tags
+generateProductTypes : String -> List String -> List (Html msg)
+generateProductTypes productType tags =
+  [ productType
+  , String.join " | " tags
+  ]
+    |> List.filter (not << String.isEmpty)
+    |> List.map itemProductType
+
 -- product highlights are bullet points on your product detail pages. You can
 -- include as many as 10 highlights per product. Google recommends four to six
 -- highlights. Each highlight can be up to 150 characters.
@@ -177,13 +187,7 @@ generateItem product =
   let
     images = nodeListList product.images
       |> generateImages
-    -- we create this from Shopify > Product > ProductType
-    -- and Shopify > Product > Tags
-    productTypes =
-      [ product.productType
-      , String.join " | " product.tags
-      ]
-        |> List.map itemProductType
+    productTypes = generateProductTypes product.productType product.tags
     highlights = product.productHighlights |> generateProductHighlights
     productDetails = product.productDetails |> generateProductDetails
   in
