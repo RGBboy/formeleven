@@ -47,6 +47,7 @@ type alias Metafield =
   { value : String
   }
 
+-- this is duplicated in Pages.elm
 decodeMetafield : Decoder a -> Metafield -> Maybe a
 decodeMetafield decoder field =
   Decode.decodeString decoder field.value
@@ -113,9 +114,9 @@ generateImages images =
     x :: xs -> itemImageLink x :: List.map itemAdditionalImageLink xs
     [] -> []
 
--- This comes from Shopify > Product > Tags
--- This is shown to really impact what keywords you show up for. We use out tags
--- as keywords here. Product type isn’t visible to shoppers, only to Google.
+-- This is shown to really impact what keywords you show up for. We use both
+-- productType and tags as keywords here. Product type isn’t visible to
+-- shoppers, only to Google.
 itemProductType : String -> Html msg
 itemProductType value =
   H.node "g:product_type" [] [ H.text value ]
@@ -127,6 +128,7 @@ itemProductHighlight : String -> Html msg
 itemProductHighlight value =
   H.node "g:product_highlight" [] [ H.text value ]
 
+-- this is duplicated in Pages.elm
 productHighlightsDecoder : Decoder (List String)
 productHighlightsDecoder =
   Decode.list Decode.string
@@ -148,12 +150,14 @@ itemProductDetail (key, value) =
     , H.node "g:attribute_value" [] [ H.text value ]
     ]
 
+-- this is duplicated in Pages.elm
 decodeKeyValue : String -> Decoder (String, String)
 decodeKeyValue value =
   case String.split ": " value of
     [k, v] -> Decode.succeed (k, v)
     _ -> Decode.fail "String does not contain a single \":\" delimeter"
 
+-- this is duplicated in Pages.elm
 productDetailsDecoder : Decoder (List (String, String))
 productDetailsDecoder =
   Decode.string
@@ -173,8 +177,13 @@ generateItem product =
   let
     images = nodeListList product.images
       |> generateImages
-    productTypes = product.tags
-      |> List.map itemProductType
+    -- we create this from Shopify > Product > ProductType
+    -- and Shopify > Product > Tags
+    productTypes =
+      [ product.productType
+      , String.join " | " product.tags
+      ]
+        |> List.map itemProductType
     highlights = product.productHighlights |> generateProductHighlights
     productDetails = product.productDetails |> generateProductDetails
   in
