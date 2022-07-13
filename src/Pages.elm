@@ -5,6 +5,7 @@ import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
 import Html.Parser
 import Html.Parser.Util
+import Json.Decode as Decode exposing (Decoder)
 import ProductFeed exposing (ProductFeedData)
 import SiteMap
 
@@ -33,6 +34,8 @@ type alias Product =
   , priceRange : { maxVariantPrice : Money }
   , featuredImage : Image
   , images : NodeList Image
+  , productHighlights : Maybe Metafield
+  , productDetails : Maybe Metafield
   }
 
 type alias ShopData =
@@ -58,6 +61,16 @@ type alias NodeList a =
 
 nodeListList : NodeList a -> List a
 nodeListList { nodes } = nodes
+
+type alias Metafield =
+  { value : String
+  }
+
+-- this is duplicated in ProductFeed.elm
+decodeMetafield : Decoder a -> Metafield -> Maybe a
+decodeMetafield decoder field =
+  Decode.decodeString decoder field.value
+    |> Result.toMaybe
 
 type alias Page msg =
   { title : String
@@ -146,28 +159,87 @@ productPage product =
             [ C.soldOut
             , C.cart
             ]
-    titleDescription =
+    titlePrice =
       [ H.h1 [ A.class "f3 fw4 mb2 mt4 mt2-ns measure" ] [ H.text product.title ]
       , H.p [ A.class "f3 fw2 mv2 measure" ] [ H.text <| C.formatGBP price ]
       ]
+    highlights = product.productHighlights |> generateProductHighlights
+    productDetails = product.productDetails |> generateProductDetails
     -- At some point we will need to parse product.descriptionHtml for safety
-    content = H.text product.descriptionHtml
+    content =
+      [ H.text product.descriptionHtml
+      , highlights
+      , productDetails
+      , H.p [] [ H.text "Made in London, UK." ]
+      , H.p [] [ H.text """
+We care about our impact on the planet, so we ship our products with 100%
+recyclable packaging and labels.
+"""
+          ]
+      ]
   in
     C.layout
       [ H.div [ A.class "ph2" ] [ C.backButton ]
-      , H.div [ A.class "db dn-ns ph2" ]
-          titleDescription
+      , H.div [ A.class "db dn-ns ph2" ] titlePrice
       , H.div [ A.class "flex mv3 flex-wrap" ]
           [ H.div [ A.class "w-100 w-50-ns ph1" ]
               [ gallery <| nodeListList product.images ]
           , H.div [ A.class "w-100 w-50-ns ph2" ]
-              [ H.div [ A.class "dn db-ns" ]
-                  titleDescription
+              [ H.div [ A.class "dn db-ns" ] titlePrice
               , buyButton
-              , H.div [ A.class "f4 fw2 measure" ] [ content ]
+              , H.div [ A.class "f4 fw2 measure" ] content
               ]
           ]
       ]
+
+-- product highlights are bullet points on your product detail pages. You can
+-- include as many as 10 highlights per product. Google recommends four to six
+-- highlights. Each highlight can be up to 150 characters.
+itemProductHighlight : String -> Html msg
+itemProductHighlight value =
+  H.li [ A.class "" ] [ H.text value ]
+
+-- this is duplicated in ProductFeed.elm
+productHighlightsDecoder : Decoder (List String)
+productHighlightsDecoder =
+  Decode.list Decode.string
+
+generateProductHighlights : Maybe Metafield -> Html msg
+generateProductHighlights field =
+  field
+    |> Maybe.andThen (decodeMetafield productHighlightsDecoder)
+    |> Maybe.withDefault []
+    |> List.map itemProductHighlight
+    |> H.ul [ A.class "" ]
+
+productDetailItem : (String, String) -> Html msg
+productDetailItem (key, value) =
+  H.li []
+    [ H.b [] [ H.text (key ++ ":") ]
+    , H.text (" " ++ value)
+    ]
+
+-- this is duplicated in ProductFeed.elm
+decodeKeyValue : String -> Decoder (String, String)
+decodeKeyValue value =
+  case String.split ": " value of
+    [k, v] -> Decode.succeed (k, v)
+    _ -> Decode.fail "String does not contain a single \":\" delimeter"
+
+-- this is duplicated in ProductFeed.elm
+productDetailsDecoder : Decoder (List (String, String))
+productDetailsDecoder =
+  Decode.string
+    |> Decode.andThen decodeKeyValue
+    |> Decode.list
+
+generateProductDetails : Maybe Metafield -> Html msg
+generateProductDetails field =
+  field
+    |> Maybe.andThen (decodeMetafield productDetailsDecoder)
+    |> Maybe.withDefault []
+    |> List.map productDetailItem
+    |> H.ul [ A.class "list pl0" ]
 
 -- contains IDs, may want to update to pass in a prefix to allow multiple on a page
 gallery : List Image -> Html msg

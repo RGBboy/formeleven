@@ -67,6 +67,12 @@ const query = gql`
             })
           }
         }
+        productHighlights: metafield(namespace: "formeleven", key: "productHighlights") {
+          value
+        }
+        productDetails: metafield(namespace: "formeleven", key: "productDetails") {
+          value
+        }
     	}
   	}
 	}
