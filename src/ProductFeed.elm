@@ -17,6 +17,7 @@ type alias Product =
   , description : String
   , productType : String
   , availableForSale : Bool
+  , totalInventory : Int
   , priceRange : { maxVariantPrice : Money }
   , images : NodeList Image
   , tags : List String
@@ -201,6 +202,7 @@ generateItem product =
             , H.node "g:identifier_exists" [] [ H.text "no" ]
             , H.node "g:condition" [] [ H.text "new" ]
             , itemAvailability product.availableForSale
+            , H.node "g:quantity_to_sell_on_facebook" [] [ H.text <| String.fromInt product.totalInventory ]
             , itemPrice product.priceRange.maxVariantPrice
             -- this will need to be pulled from Shopify eventually
             , H.node "g:shipping" []

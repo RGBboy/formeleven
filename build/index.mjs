@@ -86,6 +86,7 @@ const query = gql`
         description
         productType
         availableForSale
+        totalInventory
         priceRange {
           maxVariantPrice {
             amount
