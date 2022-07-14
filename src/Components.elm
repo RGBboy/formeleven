@@ -53,10 +53,20 @@ header =
         ]
     ]
 
+onlineDeliveryNote : Html msg
+onlineDeliveryNote =
+  H.section [ A.class "mw6 mv4 center" ]
+    [ H.p [ A.class "f5 fw2 f4-ns" ]
+        [ H.text "Currently we only deliver online orders in the UK. If you would like to make an international order please message us at "
+        , H.a [ A.class "white fw4 tl link dim underline", A.href "mailto:hello@formeleven.com" ] [ H.text "hello@formeleven.com" ]
+        , H.text "." ]
+    ]
+
 footer : Html msg
 footer =
   H.footer [ A.class "w-100 bg-black white pt1 pb3 ph4 ph2-ns" ]
-    [ H.section [ A.id "newsletter" ] []
+    [ onlineDeliveryNote
+    , H.section [ A.id "newsletter" ] []
     , H.section [ A.class "mw6 mv4 center" ]
         [ H.h2 [ A.class "f2 fw2 mt4 mt5-ns mb4 bb b--silver" ] [ H.text "Get In Touch" ]
         , H.div [ A.class "flex flex-wrap flex-row-reverse justify-center-ns justify-end" ]

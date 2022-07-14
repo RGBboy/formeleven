@@ -162,6 +162,7 @@ productPage product =
     titlePrice =
       [ H.h1 [ A.class "f3 fw4 mb2 mt4 mt2-ns measure" ] [ H.text product.title ]
       , H.p [ A.class "f3 fw2 mv2 measure" ] [ H.text <| C.formatGBP price ]
+      , H.span [ A.class "db fw4" ] [ H.text "Free UK delivery" ]
       ]
     highlights = product.productHighlights |> generateProductHighlights
     productDetails = product.productDetails |> generateProductDetails
@@ -170,7 +171,7 @@ productPage product =
       [ H.text product.descriptionHtml
       , highlights
       , productDetails
-      , H.p [] [ H.text "Made in London, UK." ]
+      , H.p [] [ H.text "Made by Form Eleven in London, UK." ]
       , H.p [] [ H.text """
 We care about our impact on the planet, so we ship our products with 100%
 recyclable packaging and labels.
@@ -214,8 +215,8 @@ generateProductHighlights field =
 
 productDetailItem : (String, String) -> Html msg
 productDetailItem (key, value) =
-  H.li []
-    [ H.b [] [ H.text (key ++ ":") ]
+  H.li [ A.class "f4 mv2"]
+    [ H.b [ A.class "fw4" ] [ H.text (key ++ ":") ]
     , H.text (" " ++ value)
     ]
 
