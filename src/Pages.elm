@@ -6,6 +6,7 @@ import Html.Attributes as A
 import Html.Parser
 import Html.Parser.Util
 import Json.Decode as Decode exposing (Decoder)
+import ProductData
 import ProductFeed exposing (ProductFeedData)
 import SiteMap
 
@@ -21,7 +22,7 @@ type alias ProductCollection =
   , handle : String
   , title : String
   , descriptionHtml : String
-  , products : NodeList Product
+  , products : ProductData.NodeList Product
   }
 
 type alias Product =
@@ -31,46 +32,16 @@ type alias Product =
   , description : String
   , descriptionHtml : String
   , availableForSale : Bool
-  , priceRange : { maxVariantPrice : Money }
-  , featuredImage : Image
-  , images : NodeList Image
-  , productHighlights : Maybe Metafield
-  , productDetails : Maybe Metafield
+  , priceRange : { maxVariantPrice : ProductData.Money }
+  , featuredImage : ProductData.Image
+  , images : ProductData.NodeList ProductData.Image
+  , productHighlights : Maybe ProductData.Metafield
+  , productDetails : Maybe ProductData.Metafield
   }
 
 type alias ShopData =
   { refundPolicy : { body : String }
   }
-
--- Todo: Change this type to an actual monetary type.
--- Perhaps move to use a JSON.Value for flags then decode to
--- correctly handle input data and errors
-type alias Money =
-  { amount : String
-  , currencyCode : String
-  }
-
-type alias Image =
-  { altText : Maybe String
-  , url : String -- Ideally this should be type URL
-  }
-
-type alias NodeList a =
-  { nodes : List a
-  }
-
-nodeListList : NodeList a -> List a
-nodeListList { nodes } = nodes
-
-type alias Metafield =
-  { value : String
-  }
-
--- this is duplicated in ProductFeed.elm
-decodeMetafield : Decoder a -> Metafield -> Maybe a
-decodeMetafield decoder field =
-  Decode.decodeString decoder field.value
-    |> Result.toMaybe
 
 type alias Page msg =
   { title : String
@@ -88,7 +59,7 @@ page title description body =
 generate : DataModel -> List (String, Page msg)
 generate { collection, feed, shop } =
   let
-    productPages = nodeListList collection.products
+    productPages = ProductData.nodeListList collection.products
       |> List.map generateProductPage
     allPages =
       List.append
@@ -184,7 +155,7 @@ recyclable packaging and labels.
       , H.div [ A.class "db dn-ns ph2" ] titlePrice
       , H.div [ A.class "flex mv3 flex-wrap" ]
           [ H.div [ A.class "w-100 w-50-ns ph1" ]
-              [ gallery <| nodeListList product.images ]
+              [ gallery <| ProductData.nodeListList product.images ]
           , H.div [ A.class "w-100 w-50-ns ph2" ]
               [ H.div [ A.class "dn db-ns" ] titlePrice
               , buyButton
@@ -200,15 +171,10 @@ itemProductHighlight : String -> Html msg
 itemProductHighlight value =
   H.li [ A.class "" ] [ H.text value ]
 
--- this is duplicated in ProductFeed.elm
-productHighlightsDecoder : Decoder (List String)
-productHighlightsDecoder =
-  Decode.list Decode.string
-
-generateProductHighlights : Maybe Metafield -> Html msg
+generateProductHighlights : Maybe ProductData.Metafield -> Html msg
 generateProductHighlights field =
   field
-    |> Maybe.andThen (decodeMetafield productHighlightsDecoder)
+    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productHighlightsDecoder)
     |> Maybe.withDefault []
     |> List.map itemProductHighlight
     |> H.ul [ A.class "" ]
@@ -220,37 +186,23 @@ productDetailItem (key, value) =
     , H.text (" " ++ value)
     ]
 
--- this is duplicated in ProductFeed.elm
-decodeKeyValue : String -> Decoder (String, String)
-decodeKeyValue value =
-  case String.split ": " value of
-    [k, v] -> Decode.succeed (k, v)
-    _ -> Decode.fail "String does not contain a single \":\" delimeter"
-
--- this is duplicated in ProductFeed.elm
-productDetailsDecoder : Decoder (List (String, String))
-productDetailsDecoder =
-  Decode.string
-    |> Decode.andThen decodeKeyValue
-    |> Decode.list
-
-generateProductDetails : Maybe Metafield -> Html msg
+generateProductDetails : Maybe ProductData.Metafield -> Html msg
 generateProductDetails field =
   field
-    |> Maybe.andThen (decodeMetafield productDetailsDecoder)
+    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productDetailsDecoder)
     |> Maybe.withDefault []
     |> List.map productDetailItem
     |> H.ul [ A.class "list pl0" ]
 
 -- contains IDs, may want to update to pass in a prefix to allow multiple on a page
-gallery : List Image -> Html msg
+gallery : List ProductData.Image -> Html msg
 gallery images =
   H.div
     [ A.class "flex flex-wrap mb3" ]
     <| List.concat
     <| List.indexedMap galleryItem images
 
-galleryItem : Int -> Image -> List (Html msg)
+galleryItem : Int -> ProductData.Image -> List (Html msg)
 galleryItem index { url } =
   let
     checked =
@@ -356,7 +308,7 @@ homePage collection =
     [ H.div [ A.class "dn" ] [ C.buyButton "7322682851523" ] -- Test Buy Button
     , C.section [ A.id "shop" ]
         [ C.h2 [] [ H.text "Shop" ]
-        , productListView <| nodeListList collection.products
+        , productListView <| ProductData.nodeListList collection.products
         , C.cart
         ]
     , C.section [ A.id "prototypes" ]

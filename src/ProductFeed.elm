@@ -4,10 +4,11 @@ import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
 import Json.Decode as Decode exposing (Decoder)
+import ProductData
 
 
 type alias ProductFeedData =
-  { products : NodeList Product
+  { products : ProductData.NodeList Product
   }
 
 type alias Product =
@@ -18,41 +19,12 @@ type alias Product =
   , productType : String
   , availableForSale : Bool
   , totalInventory : Int
-  , priceRange : { maxVariantPrice : Money }
-  , images : NodeList Image
+  , priceRange : { maxVariantPrice : ProductData.Money }
+  , images : ProductData.NodeList ProductData.Image
   , tags : List String
-  , productHighlights : Maybe Metafield
-  , productDetails : Maybe Metafield
+  , productHighlights : Maybe ProductData.Metafield
+  , productDetails : Maybe ProductData.Metafield
   }
-
--- Todo: Change this type to an actual monetary type.
--- Perhaps move to use a JSON.Value for flags then decode to
--- correctly handle input data and errors
-type alias Money =
-  { amount: String
-  , currencyCode : String
-  }
-
-type alias Image =
-  { url : String -- Ideally this should be type URL
-  }
-
-type alias NodeList a =
-  { nodes: List a
-  }
-
-nodeListList : NodeList a -> List a
-nodeListList { nodes } = nodes
-
-type alias Metafield =
-  { value : String
-  }
-
--- this is duplicated in Pages.elm
-decodeMetafield : Decoder a -> Metafield -> Maybe a
-decodeMetafield decoder field =
-  Decode.decodeString decoder field.value
-    |> Result.toMaybe
 
 itemId : String -> Html msg
 itemId id =
@@ -72,7 +44,7 @@ itemAvailability availableForSale =
   in
     H.node "g:availability" [] [ H.text value ]
 
-itemPrice : Money -> Html msg
+itemPrice : ProductData.Money -> Html msg
 itemPrice { amount, currencyCode } =
   let
     value = amount ++ " " ++ currencyCode
@@ -100,15 +72,15 @@ itemGoogleProductCategory productType =
   in
     H.node "g:google_product_category" [] [ H.text value ]
 
-itemImageLink : Image -> Html msg
+itemImageLink : ProductData.Image -> Html msg
 itemImageLink image =
   H.node "g:image_link" [] [ H.text image.url ]
 
-itemAdditionalImageLink : Image -> Html msg
+itemAdditionalImageLink : ProductData.Image -> Html msg
 itemAdditionalImageLink image =
   H.node "g:additional_image_link" [] [ H.text image.url ]
 
-generateImages : List Image -> List (Html msg)
+generateImages : List ProductData.Image -> List (Html msg)
 generateImages images =
   case images of
     x :: [] -> [ itemImageLink x ]
@@ -139,15 +111,10 @@ itemProductHighlight : String -> Html msg
 itemProductHighlight value =
   H.node "g:product_highlight" [] [ H.text value ]
 
--- this is duplicated in Pages.elm
-productHighlightsDecoder : Decoder (List String)
-productHighlightsDecoder =
-  Decode.list Decode.string
-
-generateProductHighlights : Maybe Metafield -> List (Html msg)
+generateProductHighlights : Maybe ProductData.Metafield -> List (Html msg)
 generateProductHighlights field =
   field
-    |> Maybe.andThen (decodeMetafield productHighlightsDecoder)
+    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productHighlightsDecoder)
     |> Maybe.withDefault []
     |> List.map itemProductHighlight
 
@@ -161,24 +128,10 @@ itemProductDetail (key, value) =
     , H.node "g:attribute_value" [] [ H.text value ]
     ]
 
--- this is duplicated in Pages.elm
-decodeKeyValue : String -> Decoder (String, String)
-decodeKeyValue value =
-  case String.split ": " value of
-    [k, v] -> Decode.succeed (k, v)
-    _ -> Decode.fail "String does not contain a single \":\" delimeter"
-
--- this is duplicated in Pages.elm
-productDetailsDecoder : Decoder (List (String, String))
-productDetailsDecoder =
-  Decode.string
-    |> Decode.andThen decodeKeyValue
-    |> Decode.list
-
-generateProductDetails : Maybe Metafield -> List (Html msg)
+generateProductDetails : Maybe ProductData.Metafield -> List (Html msg)
 generateProductDetails field =
   field
-    |> Maybe.andThen (decodeMetafield productDetailsDecoder)
+    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productDetailsDecoder)
     |> Maybe.withDefault []
     |> List.map itemProductDetail
 
@@ -186,7 +139,7 @@ generateProductDetails field =
 generateItem : Product -> Html msg
 generateItem product =
   let
-    images = nodeListList product.images
+    images = ProductData.nodeListList product.images
       |> generateImages
     productTypes = generateProductTypes product.productType product.tags
     highlights = product.productHighlights |> generateProductHighlights
@@ -224,7 +177,7 @@ generateItem product =
 generate : ProductFeedData -> Html msg
 generate { products } =
   let
-    items = nodeListList products
+    items = ProductData.nodeListList products
       |> List.map generateItem
   in
     H.node "rss"
