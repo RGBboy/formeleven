@@ -107,6 +107,9 @@ const query = gql`
         productDetails: metafield(namespace: "formeleven", key: "productDetails") {
           value
         }
+        productMetadata: metafield(namespace: "formeleven", key: "productMetadata") {
+          value
+        }
         tags
       }
     }

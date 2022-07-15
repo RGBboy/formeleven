@@ -4,7 +4,11 @@ import Components as C
 import Html as H exposing (Attribute, Html)
 import Html.Attributes as A
 import Json.Decode as Decode exposing (Decoder)
+import Length exposing (Length)
 import ProductData
+import Round
+import String.Extra
+
 
 
 type alias ProductFeedData =
@@ -24,6 +28,7 @@ type alias Product =
   , tags : List String
   , productHighlights : Maybe ProductData.Metafield
   , productDetails : Maybe ProductData.Metafield
+  , productMetadata : Maybe ProductData.Metafield
   }
 
 itemId : String -> Html msg
@@ -128,10 +133,121 @@ itemProductDetail (key, value) =
     , H.node "g:attribute_value" [] [ H.text value ]
     ]
 
-generateProductDetails : Maybe ProductData.Metafield -> List (Html msg)
-generateProductDetails field =
+itemColour : String -> Html msg
+itemColour value =
+  H.node "g:color" [] [ H.text value ]
+
+itemMaterial : String -> Html msg
+itemMaterial value =
+  H.node "g:material" [] [ H.text value ]
+
+lengthInCentimeters : Length -> String
+lengthInCentimeters length =
+  let
+    value = Length.inCentimeters length
+      |> Round.round 1
+  in
+    value ++ " cm"
+
+lengthInMeters : Length -> String
+lengthInMeters length =
+  let
+    value = Length.inMeters length
+      |> Round.round 1
+  in
+    value ++ " m"
+
+itemLength : Length -> Html msg
+itemLength value =
+  H.node "g:length" [] [ H.text <| lengthInCentimeters value  ]
+
+itemWidth : Length -> Html msg
+itemWidth value =
+  H.node "g:width" [] [ H.text <| lengthInCentimeters value  ]
+
+itemHeight : Length -> Html msg
+itemHeight value =
+  H.node "g:height" [] [ H.text <| lengthInCentimeters value  ]
+
+generateDimensions : ProductData.Dimensions -> List (Html msg)
+generateDimensions { width, depth, height } =
+  [ itemLength depth
+  , itemWidth width
+  , itemHeight height
+  ]
+
+metadataFields : ProductData.Metadata -> List (Html msg)
+metadataFields metadata =
+  let
+    colour = metadata.colour
+      |> Maybe.map itemColour
+      |> Maybe.map List.singleton
+    dimensions = metadata.dimensions
+      |> Maybe.map generateDimensions
+    material = metadata.materials
+      |> Maybe.andThen List.head
+      |> Maybe.map String.Extra.toSentenceCase
+      |> Maybe.map itemMaterial
+      |> Maybe.map List.singleton
+  in
+    [ colour
+    , material
+    , dimensions
+    ]
+      |> List.filterMap identity
+      |> List.concat
+
+generateMetadataFields : Maybe ProductData.Metafield -> List (Html msg)
+generateMetadataFields metadata =
+  metadata
+    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productMetadataDecoder)
+    |> Maybe.map metadataFields
+    |> Maybe.withDefault []
+
+lightDataToKeyValue : ProductData.LightData -> List (String, String)
+lightDataToKeyValue { colour, cordLength, source } =
+  [ ("Light colour", String.Extra.toSentenceCase colour)
+  , ("Light source", String.Extra.toSentenceCase source)
+  , ("Cord length", lengthInMeters cordLength)
+  ]
+
+dimensionsToString : ProductData.Dimensions -> String
+dimensionsToString { width, depth, height } =
+  let
+    w = width |> Length.inMillimeters |> String.fromFloat
+    d = depth |> Length.inMillimeters |> String.fromFloat
+    h = height |> Length.inMillimeters |> String.fromFloat
+  in
+    "W" ++ w ++ "mm x D" ++ d ++ "mm x H" ++ h ++ "mm"
+
+productDetailsMetadataFields : ProductData.Metadata -> List (String, String)
+productDetailsMetadataFields metadata =
+  let
+    materials = metadata.materials
+      |> Maybe.map (String.join ", ")
+      |> Maybe.map String.Extra.toSentenceCase
+      |> Maybe.map (Tuple.pair "Materials")
+      |> Maybe.map List.singleton
+    dimensions = metadata.dimensions
+      |> Maybe.map dimensionsToString
+      |> Maybe.map (Tuple.pair "Dimensions")
+      |> Maybe.map List.singleton
+    light = metadata.light
+      |> Maybe.map lightDataToKeyValue
+  in
+    [ materials
+    , dimensions
+    , light
+    ]
+      |> List.filterMap identity
+      |> List.concat
+
+-- returns a list of product_details fields
+generateProductDetailsFromMetadata : Maybe ProductData.Metafield -> List (Html msg)
+generateProductDetailsFromMetadata field =
   field
-    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productDetailsDecoder)
+    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productMetadataDecoder)
+    |> Maybe.map productDetailsMetadataFields
     |> Maybe.withDefault []
     |> List.map itemProductDetail
 
@@ -143,7 +259,8 @@ generateItem product =
       |> generateImages
     productTypes = generateProductTypes product.productType product.tags
     highlights = product.productHighlights |> generateProductHighlights
-    productDetails = product.productDetails |> generateProductDetails
+    productDetails = product.productMetadata |> generateProductDetailsFromMetadata
+    metadata = product.productMetadata |> generateMetadataFields
   in
     H.node "item" []
       <| List.concat
@@ -169,6 +286,7 @@ generateItem product =
           , productTypes
           , highlights
           , productDetails
+          , metadata
           ]
 
 -- At some point this should really return a Result X (Html msg)

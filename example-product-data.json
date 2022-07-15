@@ -1,0 +1,14 @@
+{
+  "colour": "white",
+  "dimensions": {
+    "width": { "value": 68, "unit": "mm" },
+    "depth": { "value": 68, "unit": "mm" },
+    "height": { "value": 130, "unit": "mm" }
+  },
+  "light": {
+    "colour": "Warm white (2700 Kelvin)",
+    "cordLength": { "value": 2, "unit": "m" },
+    "source": "Built-in 1w LED light. Fits a standard USB-A socket (wall adapter not included)"
+  },
+  "materials": [ "recycled plastic", "ceramic", "LED light" ]
+}
