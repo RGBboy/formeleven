@@ -2,7 +2,8 @@ module ProductData exposing (..)
 
 import Length exposing (Length)
 import Json.Decode as Decode exposing (Decoder)
-
+import Round
+import String.Extra
 
 
 -- Todo: Change this type to an actual monetary type.
@@ -36,18 +37,6 @@ decodeMetafield decoder field =
 productHighlightsDecoder : Decoder (List String)
 productHighlightsDecoder =
   Decode.list Decode.string
-
-keyValueDecoder : String -> Decoder (String, String)
-keyValueDecoder value =
-  case String.split ": " value of
-    [k, v] -> Decode.succeed (k, v)
-    _ -> Decode.fail "String does not contain a single \":\" delimeter"
-
-productDetailsDecoder : Decoder (List (String, String))
-productDetailsDecoder =
-  Decode.string
-    |> Decode.andThen keyValueDecoder
-    |> Decode.list
 
 type alias Dimensions =
   { width : Length
@@ -112,3 +101,49 @@ productMetadataDecoder =
     (Decode.maybe (Decode.field "dimensions" dimensionsDecoder))
     (Decode.maybe (Decode.field "light" lightDataDecoder))
     (Decode.maybe (Decode.field "materials" (Decode.list Decode.string)))
+
+lengthInMeters : Length -> String
+lengthInMeters length =
+  let
+    value = Length.inMeters length
+      |> Round.round 0
+  in
+    value ++ "m"
+
+lightDataToKeyValue : LightData -> List (String, String)
+lightDataToKeyValue { colour, cordLength, source } =
+  [ ("Light colour", String.Extra.toSentenceCase colour)
+  , ("Light source", String.Extra.toSentenceCase source)
+  , ("Cord length", lengthInMeters cordLength)
+  ]
+
+dimensionsToString : Dimensions -> String
+dimensionsToString { width, depth, height } =
+  let
+    w = width |> Length.inMillimeters |> String.fromFloat
+    d = depth |> Length.inMillimeters |> String.fromFloat
+    h = height |> Length.inMillimeters |> String.fromFloat
+  in
+    "W" ++ w ++ "mm x D" ++ d ++ "mm x H" ++ h ++ "mm"
+
+productDetailsMetadataKeyValues : Metadata -> List (String, String)
+productDetailsMetadataKeyValues metadata =
+  let
+    materials = metadata.materials
+      |> Maybe.map (String.join ", ")
+      |> Maybe.map String.Extra.toSentenceCase
+      |> Maybe.map (Tuple.pair "Materials")
+      |> Maybe.map List.singleton
+    dimensions = metadata.dimensions
+      |> Maybe.map dimensionsToString
+      |> Maybe.map (Tuple.pair "Dimensions")
+      |> Maybe.map List.singleton
+    light = metadata.light
+      |> Maybe.map lightDataToKeyValue
+  in
+    [ materials
+    , dimensions
+    , light
+    ]
+      |> List.filterMap identity
+      |> List.concat

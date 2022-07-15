@@ -148,14 +148,6 @@ lengthInCentimeters length =
   in
     value ++ " cm"
 
-lengthInMeters : Length -> String
-lengthInMeters length =
-  let
-    value = Length.inMeters length
-      |> Round.round 1
-  in
-    value ++ " m"
-
 itemLength : Length -> Html msg
 itemLength value =
   H.node "g:length" [] [ H.text <| lengthInCentimeters value  ]
@@ -203,50 +195,12 @@ generateMetadataFields metadata =
     |> Maybe.map metadataFields
     |> Maybe.withDefault []
 
-lightDataToKeyValue : ProductData.LightData -> List (String, String)
-lightDataToKeyValue { colour, cordLength, source } =
-  [ ("Light colour", String.Extra.toSentenceCase colour)
-  , ("Light source", String.Extra.toSentenceCase source)
-  , ("Cord length", lengthInMeters cordLength)
-  ]
-
-dimensionsToString : ProductData.Dimensions -> String
-dimensionsToString { width, depth, height } =
-  let
-    w = width |> Length.inMillimeters |> String.fromFloat
-    d = depth |> Length.inMillimeters |> String.fromFloat
-    h = height |> Length.inMillimeters |> String.fromFloat
-  in
-    "W" ++ w ++ "mm x D" ++ d ++ "mm x H" ++ h ++ "mm"
-
-productDetailsMetadataFields : ProductData.Metadata -> List (String, String)
-productDetailsMetadataFields metadata =
-  let
-    materials = metadata.materials
-      |> Maybe.map (String.join ", ")
-      |> Maybe.map String.Extra.toSentenceCase
-      |> Maybe.map (Tuple.pair "Materials")
-      |> Maybe.map List.singleton
-    dimensions = metadata.dimensions
-      |> Maybe.map dimensionsToString
-      |> Maybe.map (Tuple.pair "Dimensions")
-      |> Maybe.map List.singleton
-    light = metadata.light
-      |> Maybe.map lightDataToKeyValue
-  in
-    [ materials
-    , dimensions
-    , light
-    ]
-      |> List.filterMap identity
-      |> List.concat
-
 -- returns a list of product_details fields
 generateProductDetailsFromMetadata : Maybe ProductData.Metafield -> List (Html msg)
 generateProductDetailsFromMetadata field =
   field
     |> Maybe.andThen (ProductData.decodeMetafield ProductData.productMetadataDecoder)
-    |> Maybe.map productDetailsMetadataFields
+    |> Maybe.map ProductData.productDetailsMetadataKeyValues
     |> Maybe.withDefault []
     |> List.map itemProductDetail
 

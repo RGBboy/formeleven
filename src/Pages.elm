@@ -36,7 +36,7 @@ type alias Product =
   , featuredImage : ProductData.Image
   , images : ProductData.NodeList ProductData.Image
   , productHighlights : Maybe ProductData.Metafield
-  , productDetails : Maybe ProductData.Metafield
+  , productMetadata : Maybe ProductData.Metafield
   }
 
 type alias ShopData =
@@ -136,7 +136,7 @@ productPage product =
       , H.span [ A.class "db fw4" ] [ H.text "Free UK delivery" ]
       ]
     highlights = product.productHighlights |> generateProductHighlights
-    productDetails = product.productDetails |> generateProductDetails
+    productDetails = product.productMetadata |> generateProductDetailsFromMetadata
     -- At some point we will need to parse product.descriptionHtml for safety
     content =
       [ H.text product.descriptionHtml
@@ -186,10 +186,11 @@ productDetailItem (key, value) =
     , H.text (" " ++ value)
     ]
 
-generateProductDetails : Maybe ProductData.Metafield -> Html msg
-generateProductDetails field =
+generateProductDetailsFromMetadata : Maybe ProductData.Metafield -> Html msg
+generateProductDetailsFromMetadata field =
   field
-    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productDetailsDecoder)
+    |> Maybe.andThen (ProductData.decodeMetafield ProductData.productMetadataDecoder)
+    |> Maybe.map ProductData.productDetailsMetadataKeyValues
     |> Maybe.withDefault []
     |> List.map productDetailItem
     |> H.ul [ A.class "list pl0" ]
