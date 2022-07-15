@@ -27,7 +27,6 @@ type alias Product =
   , images : ProductData.NodeList ProductData.Image
   , tags : List String
   , productHighlights : Maybe ProductData.Metafield
-  , productDetails : Maybe ProductData.Metafield
   , productMetadata : Maybe ProductData.Metafield
   }
 
