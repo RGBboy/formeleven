@@ -290,7 +290,6 @@ update msg model =
           in
             (model, effect)
         _ -> (model, Noop)
-    -- TODO: Add tests for CheckoutCompleted
     CheckoutCompleted ->
       ( { model | cart = Loading }
       , CreateCart Dict.empty

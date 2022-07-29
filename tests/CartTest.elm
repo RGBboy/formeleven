@@ -531,5 +531,20 @@ suite =
                           |> Expect.equal (Cart.CreateCart linesToCreate)
                 ]
             ]
+        , describe "when CheckoutCompleted"
+            [ test "model.cart is Loading" <|
+                \_ ->
+                  modelCartWithMultipleItemsLoaded
+                    |> Cart.update (Cart.CheckoutCompleted)
+                    |> Tuple.first
+                    |> .cart
+                    |> Expect.equal Cart.Loading
+            , test "effect is CreateCart with no items" <|
+                \_ ->
+                  modelCartWithMultipleItemsLoaded
+                    |> Cart.update (Cart.CheckoutCompleted)
+                    |> Tuple.second
+                    |> Expect.equal (Cart.CreateCart Dict.empty)
+            ]
         ]
     ]
