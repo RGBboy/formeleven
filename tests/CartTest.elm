@@ -147,7 +147,7 @@ suite =
                 \_ ->
                   Cart.init flagsWithCartId
                     |> Tuple.second
-                    |> Expect.equal (Cart.LoadCart cartId)
+                    |> Expect.equal [ Cart.LoadCart cartId ]
             ]
         , describe "when passed flags without cartId"
             [ test "model.cart is Loading" <|
@@ -160,7 +160,7 @@ suite =
                 \_ ->
                   Cart.init flagsWithoutCartId
                     |> Tuple.second
-                    |> Expect.equal (Cart.CreateCart Dict.empty)
+                    |> Expect.equal [ Cart.CreateCart Dict.empty ]
             ]
         ]
     , describe "update"
@@ -179,7 +179,7 @@ suite =
                     |> Tuple.first
                     |> Cart.update (Cart.CartCreated emptyCart)
                     |> Tuple.second
-                    |> Expect.equal (Cart.Broadcast (CartEvent.CartCreated emptyCart.id))
+                    |> Expect.equal [ Cart.Broadcast (CartEvent.CartCreated emptyCart.id) ]
             ]
         , describe "when create cart fails"
             [ test "model.cart is CreationFailed" <|
@@ -216,7 +216,7 @@ suite =
                     |> Tuple.first
                     |> Cart.update Cart.CartLoadingFailed
                     |> Tuple.second
-                    |> Expect.equal (Cart.CreateCart Dict.empty)
+                    |> Expect.equal [ Cart.CreateCart Dict.empty ]
             ]
         , describe "and create cart succeeds"
             [ test "model.cart is empty cart" <|
@@ -237,7 +237,7 @@ suite =
                     |> Tuple.first
                     |> Cart.update (Cart.CartCreated emptyCart)
                     |> Tuple.second
-                    |> Expect.equal (Cart.Broadcast (CartEvent.CartCreated emptyCart.id))
+                    |> Expect.equal [ Cart.Broadcast (CartEvent.CartCreated emptyCart.id) ]
             ]
         , describe "and create cart fails"
             [ test "model.cart is CreationFailed" <|
@@ -250,7 +250,7 @@ suite =
                     |> Tuple.first
                     |> .cart
                     |> Expect.equal Cart.CreationFailed
-            , test "effect is Noop" <|
+            , test "effects are empty" <|
                 \_ ->
                   Cart.init flagsWithCartId
                     |> Tuple.first
@@ -258,7 +258,7 @@ suite =
                     |> Tuple.first
                     |> Cart.update Cart.CartCreationFailed
                     |> Tuple.second
-                    |> Expect.equal Cart.Noop
+                    |> Expect.equal []
             ]
         , describe "when empty cart Loaded"
             [ describe "when user AddToCart"
@@ -275,12 +275,12 @@ suite =
                         |> Cart.update (Cart.AddToCart "productVariantId")
                         |> Tuple.second
                         |> Expect.equal
-                            ( Cart.CartLinesAdd
+                            [ Cart.CartLinesAdd
                               { cartId = emptyCart.id
                               , productVariantId = "productVariantId"
                               , quantity = 1
                               }
-                            )
+                            ]
                 ]
             , describe "when user UpdateCart"
                 [ test "model.cart is Updating" <|
@@ -296,12 +296,12 @@ suite =
                         |> Cart.update (Cart.UpdateCart "productVariantId" 1)
                         |> Tuple.second
                         |> Expect.equal
-                            ( Cart.CartLinesAdd
+                            [ Cart.CartLinesAdd
                               { cartId = emptyCart.id
                               , productVariantId = "productVariantId"
                               , quantity = 1
                               }
-                            )
+                            ]
                 ]
             , describe "when user triggers checkout"
                 [ test "model.cart stays the same" <|
@@ -310,12 +310,12 @@ suite =
                         |> Cart.update Cart.Checkout
                         |> Tuple.first
                         |> Expect.equal modelEmptyCartLoaded
-                , test "effect is Noop" <|
+                , test "effects are empty" <|
                     \_ ->
                       modelEmptyCartLoaded
                         |> Cart.update Cart.Checkout
                         |> Tuple.second
-                        |> Expect.equal Cart.Noop
+                        |> Expect.equal []
                 ]
             ]
         , describe "when cart with single item is Loaded"
@@ -333,12 +333,12 @@ suite =
                         |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
                         |> Tuple.second
                         |> Expect.equal
-                            ( Cart.CartLinesUpdate
+                            [ Cart.CartLinesUpdate
                               { cartId = cartWithSingleItem.id
                               , lineId = cartLineA.id
                               , quantity = 2
                               }
-                            )
+                            ]
                 ]
             , describe "when user UpdateCart"
                 [ test "model.cart is Updating" <|
@@ -354,12 +354,12 @@ suite =
                         |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 2)
                         |> Tuple.second
                         |> Expect.equal
-                          ( Cart.CartLinesUpdate
+                          [ Cart.CartLinesUpdate
                             { cartId = cartWithSingleItem.id
                             , lineId = cartLineA.id
                             , quantity = 2
                             }
-                          )
+                          ]
                 ]
             , describe "when user removes all of an item"
                 [ test "model.cart is Updating" <|
@@ -375,11 +375,11 @@ suite =
                         |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
                         |> Tuple.second
                         |> Expect.equal
-                          ( Cart.CartLinesRemove
+                          [ Cart.CartLinesRemove
                             { cartId = cartWithSingleItem.id
                             , lineId = cartLineA.id
                             }
-                          )
+                          ]
                 ]
             , describe "when user triggers checkout"
                 [ test "model.cart stays the same" <|
@@ -388,12 +388,20 @@ suite =
                         |> Cart.update Cart.Checkout
                         |> Tuple.first
                         |> Expect.equal modelCartWithSingleItemLoaded
-                , test "effect is Noop" <|
+                , test "effects have StartCheckout" <|
                     \_ ->
                       modelCartWithSingleItemLoaded
                         |> Cart.update Cart.Checkout
                         |> Tuple.second
-                        |> Expect.equal (Cart.StartCheckout cartWithSingleItem.checkoutUrl)
+                        |> List.member (Cart.StartCheckout cartWithSingleItem.checkoutUrl)
+                        |> Expect.true "Expected list to contain StartCheckout"
+                , test "effects have Broadcast CartEvent.CheckoutStarted" <|
+                    \_ ->
+                      modelCartWithSingleItemLoaded
+                        |> Cart.update Cart.Checkout
+                        |> Tuple.second
+                        |> List.member (Cart.Broadcast CartEvent.CheckoutStarted)
+                        |> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutStarted"
                 ]
             ]
         , describe "when cart with single item and multiple quantity is Loaded"
@@ -411,12 +419,12 @@ suite =
                         |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
                         |> Tuple.second
                         |> Expect.equal
-                            ( Cart.CartLinesUpdate
+                            [ Cart.CartLinesUpdate
                               { cartId = cartWithSingleItemMultipleQuantity.id
                               , lineId = cartLineA.id
                               , quantity = 3
                               }
-                            )
+                            ]
                 ]
             , describe "when user removes item"
                 [ test "model.cart is Updating" <|
@@ -432,12 +440,12 @@ suite =
                         |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 1)
                         |> Tuple.second
                         |> Expect.equal
-                          ( Cart.CartLinesUpdate
+                          [ Cart.CartLinesUpdate
                             { cartId = cartWithSingleItemMultipleQuantity.id
                             , lineId = cartLineA.id
                             , quantity = 1
                             }
-                          )
+                          ]
                 ]
             ]
         , describe "when cart with single item is Updating"
@@ -449,12 +457,12 @@ suite =
                         |> Tuple.first
                         |> .cart
                         |> Expect.equal (Cart.Loaded cartWithSingleItemMultipleQuantity)
-                , test "effect is Noop" <|
+                , test "effects are empty" <|
                     \_ ->
                       modelCartWithSingleItemUpdating
                         |> Cart.update (Cart.CartUpdated cartWithSingleItemMultipleQuantity)
                         |> Tuple.second
-                        |> Expect.equal (Cart.Noop)
+                        |> Expect.equal []
                 ]
             , describe "and message is CartUpdateFailed"
                 -- handles the case for expired cart
@@ -475,7 +483,7 @@ suite =
                         modelCartWithSingleItemUpdating
                           |> Cart.update (Cart.CartUpdateFailed)
                           |> Tuple.second
-                          |> Expect.equal (Cart.CreateCart linesToCreate)
+                          |> Expect.equal [ Cart.CreateCart linesToCreate ]
                 ]
             ]
         , describe "when cart with multiple items is Updating"
@@ -487,12 +495,12 @@ suite =
                         |> Tuple.first
                         |> .cart
                         |> Expect.equal (Cart.Loaded cartWithSingleItemMultipleQuantity)
-                , test "effect is Noop" <|
+                , test "effects are empty" <|
                     \_ ->
                       modelCartWithMultipleItemsUpdating
                         |> Cart.update (Cart.CartUpdated cartWithSingleItemMultipleQuantity)
                         |> Tuple.second
-                        |> Expect.equal (Cart.Noop)
+                        |> Expect.equal []
                 ]
             , describe "and msg is CartUpdateFailed"
                 [ test "model.cart is recreating cart" <|
@@ -514,7 +522,7 @@ suite =
                         modelCartWithMultipleItemsUpdating
                           |> Cart.update (Cart.CartUpdateFailed)
                           |> Tuple.second
-                          |> Expect.equal (Cart.CreateCart linesToCreate)
+                          |> Expect.equal [ Cart.CreateCart linesToCreate ]
                 , test "effect is CreateCart without removed lines" <|
                     \_ ->
                       let
@@ -529,7 +537,7 @@ suite =
                         model
                           |> Cart.update (Cart.CartUpdateFailed)
                           |> Tuple.second
-                          |> Expect.equal (Cart.CreateCart linesToCreate)
+                          |> Expect.equal [ Cart.CreateCart linesToCreate ]
                 ]
             ]
         , describe "when CheckoutCompleted"
@@ -545,7 +553,7 @@ suite =
                   modelCartWithMultipleItemsLoaded
                     |> Cart.update (Cart.CheckoutCompleted)
                     |> Tuple.second
-                    |> Expect.equal (Cart.CreateCart Dict.empty)
+                    |> Expect.equal [ Cart.CreateCart Dict.empty ]
             ]
         ]
     ]

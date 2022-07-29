@@ -45,7 +45,6 @@ type Effect
   | CartLinesUpdate Api.CartLinesUpdateInput
   | StartCheckout String
   | Broadcast CartEvent
-  | Noop
 
 effectToCmd : Api.Config -> Effect -> Cmd Msg
 effectToCmd apiConfig effect =
@@ -74,8 +73,6 @@ effectToCmd apiConfig effect =
 
     Broadcast event ->
       CartEvent.encode event |> events
-
-    Noop -> Cmd.none
 
 cartApiResultToMsg : (a -> Msg) -> Msg -> Cmd (Result x (Maybe a)) -> Cmd Msg
 cartApiResultToMsg happyMapper unhappyMsg cmd =
@@ -153,18 +150,20 @@ type alias Model =
 initWithCmd : Flags -> (Model, Cmd Msg)
 initWithCmd flags =
   let
-    (cart, effect) = init flags
+    (cart, effects) = init flags
+    cmd = effects
+      |> List.map (effectToCmd cart.apiConfig)
+      |> Cmd.batch
   in
-    ( cart
-    , effectToCmd cart.apiConfig effect
-    )
+    ( cart, cmd )
 
-init : Flags -> (Model, Effect)
+init : Flags -> (Model, List Effect)
 init { endpoint, token, cartId } =
   let
-    effect = cartId
+    effects = cartId
       |> Maybe.map LoadCart
       |> Maybe.withDefault (CreateCart Dict.empty)
+      |> List.singleton
   in
   ( { apiConfig =
         { url = endpoint
@@ -173,7 +172,7 @@ init { endpoint, token, cartId } =
     , cart = Loading
     , uiState = Closed
     }
-  , effect
+  , effects
   )
 
 -- MESSAGES
@@ -214,39 +213,40 @@ updateItemQuantityInCart productVariantId quantity =
 updateWithCmd : Msg -> Model -> (Model, Cmd Msg)
 updateWithCmd msg model =
   let
-    (cart, effect) = update msg model
+    (cart, effects) = update msg model
+    cmd = effects
+      |> List.map (effectToCmd cart.apiConfig)
+      |> Cmd.batch
   in
-    ( cart
-    , effectToCmd cart.apiConfig effect
-    )
+    ( cart, cmd )
 
-update : Msg -> Model -> (Model, Effect)
+update : Msg -> Model -> (Model, List Effect)
 update msg model =
   case msg of
-    NoOpMsg -> (model, Noop)
+    NoOpMsg -> (model, [])
     OpenCart ->
       ( { model | uiState = Open }
-      , Noop
+      , []
       )
     CloseCart ->
       ( { model | uiState = Closed }
-      , Noop
+      , []
       )
     CartCreated cart ->
       ( { model | cart = Loaded cart }
-      , Broadcast (CartEvent.CartCreated cart.id)
+      , [ Broadcast (CartEvent.CartCreated cart.id) ]
       )
     CartCreationFailed ->
       ( { model | cart = CreationFailed }
-      , Noop
+      , []
       )
     CartLoaded cart ->
       ( { model | cart = Loaded cart }
-      , Noop
+      , []
       )
     CartLoadingFailed ->
       ( { model | cart = Loading }
-      , CreateCart Dict.empty
+      , [ CreateCart Dict.empty ]
       )
     AddToCart productVariantId ->
       case model.cart of
@@ -255,23 +255,23 @@ update msg model =
             newQuantity = (quantityOfProductVariant cart productVariantId) + 1
           in
             updateCart model cart productVariantId newQuantity
-        _ -> (model, Noop)
+        _ -> (model, [])
     UpdateCart productVariantId newQuantity ->
       case model.cart of
         Loaded cart ->
           updateCart model cart productVariantId newQuantity
-        _ -> (model, Noop)
+        _ -> (model, [])
     CartUpdated cart ->
       ( { model | cart = Loaded cart }
-      , Noop
+      , []
       )
     CartUpdateFailed ->
       case model.cart of
         Updating cart change ->
           ( { model | cart = Recreating cart change }
-          , CreateCart <| calculateCreateCartChange cart change
+          , [ CreateCart <| calculateCreateCartChange cart change ]
           )
-        _ -> (model, Noop)
+        _ -> (model, [])
     Checkout ->
       case model.cart of
         Loaded cart ->
@@ -279,23 +279,25 @@ update msg model =
             quantity = cart.lines
               |> List.map .quantity
               |> List.sum
-            effect =
+            effects =
               if quantity > 0 then
-                StartCheckout cart.checkoutUrl
+                [ StartCheckout cart.checkoutUrl
+                , Broadcast CartEvent.CheckoutStarted
+                ]
               else
-                Noop
+                []
           in
-            (model, effect)
-        _ -> (model, Noop)
+            (model, effects)
+        _ -> (model, [])
     CheckoutCompleted ->
       ( { model | cart = Loading }
-      , CreateCart Dict.empty
+      , [ CreateCart Dict.empty ]
       )
 
-updateCart : Model -> Api.Cart -> String -> Int -> (Model, Effect)
+updateCart : Model -> Api.Cart -> String -> Int -> (Model, List Effect)
 updateCart model cart productVariantId quantity =
   ( { model | cart = Updating cart (productVariantId, quantity) }
-  , calculateCartUpdateEffect cart (productVariantId, quantity)
+  , [ calculateCartUpdateEffect cart (productVariantId, quantity) ]
   )
 
 quantityOfProductVariant : Api.Cart -> String -> Int
