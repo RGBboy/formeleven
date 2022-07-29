@@ -260,7 +260,28 @@ suite =
                     |> Expect.equal Cart.Noop
             ]
         , describe "when empty cart Loaded"
-            [ describe "when user adds an item"
+            [ describe "when user AddToCart"
+                [ test "model.cart is Updating with correct quantity" <|
+                    \_ ->
+                      modelEmptyCartLoaded
+                        |> Cart.update (Cart.AddToCart "productVariantId")
+                        |> Tuple.first
+                        |> .cart
+                        |> Expect.equal (Cart.Updating emptyCart ("productVariantId", 1))
+                , test "effect is CartLinesAdd with correct quantity" <|
+                    \_ ->
+                      modelEmptyCartLoaded
+                        |> Cart.update (Cart.AddToCart "productVariantId")
+                        |> Tuple.second
+                        |> Expect.equal
+                            ( Cart.CartLinesAdd
+                              { cartId = emptyCart.id
+                              , productVariantId = "productVariantId"
+                              , quantity = 1
+                              }
+                            )
+                ]
+            , describe "when user UpdateCart"
                 [ test "model.cart is Updating" <|
                     \_ ->
                       modelEmptyCartLoaded
@@ -297,7 +318,28 @@ suite =
                 ]
             ]
         , describe "when cart with single item is Loaded"
-            [ describe "when user adds item"
+            [ describe "when user AddToCart"
+                [ test "model.cart is Updating with correct quantity" <|
+                    \_ ->
+                      modelCartWithSingleItemLoaded
+                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
+                        |> Tuple.first
+                        |> .cart
+                        |> Expect.equal (Cart.Updating cartWithSingleItem (cartLineA.productVariant.id, 2))
+                , test "effect is CartLinesAdd with correct quantity" <|
+                    \_ ->
+                      modelCartWithSingleItemLoaded
+                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
+                        |> Tuple.second
+                        |> Expect.equal
+                            ( Cart.CartLinesUpdate
+                              { cartId = cartWithSingleItem.id
+                              , lineId = cartLineA.id
+                              , quantity = 2
+                              }
+                            )
+                ]
+            , describe "when user UpdateCart"
                 [ test "model.cart is Updating" <|
                     \_ ->
                       modelCartWithSingleItemLoaded
@@ -354,7 +396,28 @@ suite =
                 ]
             ]
         , describe "when cart with single item and multiple quantity is Loaded"
-            [ describe "when user removes item"
+            [ describe "when user AddToCart"
+                [ test "model.cart is Updating with correct quantity" <|
+                    \_ ->
+                      modelCartWithSingleItemMultipleQuantityLoaded
+                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
+                        |> Tuple.first
+                        |> .cart
+                        |> Expect.equal (Cart.Updating cartWithSingleItemMultipleQuantity (cartLineA.productVariant.id, 3))
+                , test "effect is CartLinesAdd with correct quantity" <|
+                    \_ ->
+                      modelCartWithSingleItemMultipleQuantityLoaded
+                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
+                        |> Tuple.second
+                        |> Expect.equal
+                            ( Cart.CartLinesUpdate
+                              { cartId = cartWithSingleItemMultipleQuantity.id
+                              , lineId = cartLineA.id
+                              , quantity = 3
+                              }
+                            )
+                ]
+            , describe "when user removes item"
                 [ test "model.cart is Updating" <|
                     \_ ->
                       modelCartWithSingleItemMultipleQuantityLoaded

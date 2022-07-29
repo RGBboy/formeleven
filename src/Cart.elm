@@ -251,7 +251,6 @@ update msg model =
       ( { model | cart = Loading }
       , CreateCart Dict.empty
       )
-    -- TODO: Add tests for AddToCart
     AddToCart productVariantId ->
       case model.cart of
         Loaded cart ->
