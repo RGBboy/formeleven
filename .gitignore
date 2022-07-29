@@ -4,6 +4,7 @@ build/elm.js
 frontend/elm.js
 frontend/*.html
 !frontend/graphiql.html
+!frontend/cart.html
 frontend/products
 frontend/products/*.html
 frontend/*.xml
