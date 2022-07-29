@@ -2,6 +2,7 @@ port module Cart exposing (..)
 
 import Api
 import Browser
+import CartEvent exposing (CartEvent)
 import Dict exposing (Dict)
 import FeatherIcons
 import Html as H exposing (Attribute, Html)
@@ -43,7 +44,7 @@ type Effect
   | CartLinesRemove Api.CartLinesRemoveInput
   | CartLinesUpdate Api.CartLinesUpdateInput
   | StartCheckout String
-  | BroadcastCartCreated String
+  | Broadcast CartEvent
   | Noop
 
 effectToCmd : Api.Config -> Effect -> Cmd Msg
@@ -71,12 +72,8 @@ effectToCmd apiConfig effect =
         ]
         |> commands
 
-    BroadcastCartCreated cartId ->
-      Encode.object
-        [ ( "type", Encode.string "CartCreated" )
-        , ( "value", Encode.string cartId )
-        ]
-        |> events
+    Broadcast event ->
+      CartEvent.encode event |> events
 
     Noop -> Cmd.none
 
@@ -237,7 +234,7 @@ update msg model =
       )
     CartCreated cart ->
       ( { model | cart = Loaded cart }
-      , BroadcastCartCreated cart.id
+      , Broadcast (CartEvent.CartCreated cart.id)
       )
     CartCreationFailed ->
       ( { model | cart = CreationFailed }

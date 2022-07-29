@@ -1,5 +1,6 @@
 module CartTest exposing (..)
 
+import CartEvent exposing (CartEvent)
 import Dict exposing (Dict)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
@@ -172,13 +173,13 @@ suite =
                     |> Tuple.first
                     |> .cart
                     |> Expect.equal (Cart.Loaded emptyCart)
-            , test "effect is BroadcastCartCreated" <|
+            , test "effect is Broadcast CartEvent.CartCreated" <|
                 \_ ->
                   Cart.init flagsWithoutCartId
                     |> Tuple.first
                     |> Cart.update (Cart.CartCreated emptyCart)
                     |> Tuple.second
-                    |> Expect.equal (Cart.BroadcastCartCreated emptyCart.id)
+                    |> Expect.equal (Cart.Broadcast (CartEvent.CartCreated emptyCart.id))
             ]
         , describe "when create cart fails"
             [ test "model.cart is CreationFailed" <|
@@ -228,7 +229,7 @@ suite =
                     |> Tuple.first
                     |> .cart
                     |> Expect.equal (Cart.Loaded emptyCart)
-            , test "effect is BroadcastCartCreated" <|
+            , test "effect is Broadcast CartEvent.CartCreated" <|
                 \_ ->
                   Cart.init flagsWithCartId
                     |> Tuple.first
@@ -236,7 +237,7 @@ suite =
                     |> Tuple.first
                     |> Cart.update (Cart.CartCreated emptyCart)
                     |> Tuple.second
-                    |> Expect.equal (Cart.BroadcastCartCreated emptyCart.id)
+                    |> Expect.equal (Cart.Broadcast (CartEvent.CartCreated emptyCart.id))
             ]
         , describe "and create cart fails"
             [ test "model.cart is CreationFailed" <|
