@@ -5,6 +5,7 @@ import Json.Encode as Encode
 type CartEvent
   = CartCreated String
   | AddedToCart
+  | RemovedFromCart
   | CheckoutStarted
   | CheckoutCompleted
 
@@ -20,6 +21,11 @@ encode event =
     AddedToCart ->
       Encode.object
         [ ( "type", Encode.string "AddedToCart" )
+        ]
+
+    RemovedFromCart ->
+      Encode.object
+        [ ( "type", Encode.string "RemovedFromCart" )
         ]
 
     CheckoutStarted ->

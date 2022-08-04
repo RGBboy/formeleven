@@ -4,6 +4,7 @@ import CartEvent exposing (CartEvent)
 import Dict exposing (Dict)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer)
+import Random
 import Test exposing (..)
 
 import Cart
@@ -163,6 +164,9 @@ suite =
                     |> Expect.equal [ Cart.CreateCart Dict.empty ]
             ]
         ]
+
+
+
     , describe "update"
         [ describe "when create cart succeeds"
             [ test "model.cart is Loaded with cart" <|
@@ -457,12 +461,12 @@ suite =
                         |> Tuple.first
                         |> .cart
                         |> Expect.equal (Cart.Loaded cartWithSingleItemMultipleQuantity)
-                , test "effects are empty" <|
+                , test "effects are Broadcast CartEvent.AddedToCart" <|
                     \_ ->
                       modelCartWithSingleItemUpdating
                         |> Cart.update (Cart.CartUpdated cartWithSingleItemMultipleQuantity)
                         |> Tuple.second
-                        |> Expect.equal []
+                        |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
                 ]
             , describe "and message is CartUpdateFailed"
                 -- handles the case for expired cart
@@ -548,12 +552,197 @@ suite =
                     |> Tuple.first
                     |> .cart
                     |> Expect.equal Cart.Loading
-            , test "effect is CreateCart with no items" <|
+            , test "effects have CreateCart with no items" <|
                 \_ ->
                   modelCartWithMultipleItemsLoaded
                     |> Cart.update (Cart.CheckoutCompleted)
                     |> Tuple.second
-                    |> Expect.equal [ Cart.CreateCart Dict.empty ]
+                    |> List.member (Cart.CreateCart Dict.empty)
+                    |> Expect.true "Expected list to contain Cart.CreateCart"
+            , test "effects have BroadCast CartEvent.CheckoutCompleted" <|
+                \_ ->
+                  modelCartWithMultipleItemsLoaded
+                    |> Cart.update (Cart.CheckoutCompleted)
+                    |> Tuple.second
+                    |> List.member (Cart.Broadcast CartEvent.CheckoutCompleted)
+                    |> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutCompleted"
+            ]
+        ]
+
+
+    -- TODO: implement returning diff of items with the event
+    , describe "calculateCartChangeEvent"
+        [ describe "when RemoteCart has no cart and new cart has items"
+            [ fuzz2
+                remoteCartWithNoCartFuzzer
+                cartWithItemsFuzzer
+                "effect is Broadcast CartEvent.AddedToCart" <|
+                  \a b ->
+                    Cart.calculateCartChangeEvent a b
+                      |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
+            ]
+        , describe "when RemoteCart has no cart and new cart no items"
+            [ fuzz2
+                remoteCartWithNoCartFuzzer
+                cartWithNoItemsFuzzer
+                "effect is empty list" <|
+                  \a b ->
+                    Cart.calculateCartChangeEvent a b
+                      |> Expect.equal []
+            ]
+        , describe "when RemoteCart has existing cart and new cart has same items"
+            [ fuzz
+                remoteCartWithUpdatingCartAndCartWithSameItems
+                "effect is empty list" <|
+                  \(a, b) ->
+                    Cart.calculateCartChangeEvent a b
+                      |> Expect.equal []
+            ]
+        , describe "when RemoteCart has existing cart and new cart has items added"
+            [ fuzz
+                remoteCartWithUpdatingCartAndCartWithAddedItems
+                "effect is Broadcast CartEvent.AddedToCart" <|
+                  \(a, b) ->
+                    Cart.calculateCartChangeEvent a b
+                      |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
+            ]
+        , describe "when RemoteCart has existing cart and new cart has items removed"
+            [ fuzz
+                remoteCartWithUpdatingCartAndCartWithRemovedItems
+                "effect is Broadcast CartEvent.RemovedFromCart" <|
+                  \(a, b) ->
+                    Cart.calculateCartChangeEvent a b
+                      |> Expect.equal [ Cart.Broadcast CartEvent.RemovedFromCart ]
             ]
         ]
     ]
+
+-- Fuzzers
+
+nonEmptyListFuzzer : Fuzzer a -> Fuzzer (List a)
+nonEmptyListFuzzer fuzzer =
+  Fuzz.map2 (::) fuzzer (Fuzz.list fuzzer)
+
+cartFuzzer : Fuzzer Api.Cart
+cartFuzzer =
+  Fuzz.map4 Api.Cart
+    Fuzz.string
+    Fuzz.string
+    (Fuzz.list cartLineFuzzer)
+    moneyFuzzer
+
+cartWithNoItemsFuzzer : Fuzzer Api.Cart
+cartWithNoItemsFuzzer =
+  Fuzz.map4 Api.Cart
+    Fuzz.string
+    Fuzz.string
+    (Fuzz.constant [])
+    (Fuzz.constant { amount = "0.0", currencyCode = "GBP" })
+
+cartWithItemsFuzzer : Fuzzer Api.Cart
+cartWithItemsFuzzer =
+  Fuzz.map4 Api.Cart
+    Fuzz.string
+    Fuzz.string
+    (nonEmptyListFuzzer cartLineFuzzer)
+    moneyFuzzer
+
+cartLineFuzzer : Fuzzer Api.CartLine
+cartLineFuzzer =
+  Fuzz.map4 Api.CartLine
+    Fuzz.string
+    productVariantFuzzer
+    (Fuzz.intRange 1 Random.maxInt)
+    moneyFuzzer
+
+changeFuzzer : Fuzzer Cart.Change
+changeFuzzer =
+  Fuzz.map2 Tuple.pair
+    Fuzz.string
+    (Fuzz.intRange 1 Random.maxInt)
+
+imageFuzzer : Fuzzer Api.Image
+imageFuzzer =
+  Fuzz.map Api.Image
+    Fuzz.string
+
+moneyFuzzer : Fuzzer Api.Money
+moneyFuzzer =
+  Fuzz.map2 Api.Money
+    (Fuzz.float |> Fuzz.map String.fromFloat)
+    (Fuzz.constant "GBP")
+
+productFuzzer : Fuzzer Api.Product
+productFuzzer =
+  Fuzz.map2 Api.Product
+    Fuzz.string
+    Fuzz.string
+
+productVariantFuzzer : Fuzzer Api.ProductVariant
+productVariantFuzzer =
+  Fuzz.map4 Api.ProductVariant
+    Fuzz.string
+    (Fuzz.maybe imageFuzzer)
+    productFuzzer
+    (Fuzz.intRange 0 Random.maxInt)
+
+remoteCartWithNoCartFuzzer : Fuzzer Cart.RemoteCart
+remoteCartWithNoCartFuzzer =
+  Fuzz.oneOf
+    [ Fuzz.constant (Cart.Loading)
+    , Fuzz.constant (Cart.CreationFailed)
+    ]
+
+remoteCartMapperFuzzer : Fuzzer (Api.Cart -> Cart.Change -> Cart.RemoteCart)
+remoteCartMapperFuzzer =
+  Fuzz.oneOf
+    [ Fuzz.constant ((\ cart change -> Cart.Loaded cart ))
+    , Fuzz.constant (Cart.Updating)
+    , Fuzz.constant (Cart.Recreating)
+    ]
+
+remoteCartWithUpdatingCartAndCartWithSameItems : Fuzzer (Cart.RemoteCart, Api.Cart)
+remoteCartWithUpdatingCartAndCartWithSameItems =
+  Fuzz.map3 (\ remoteCartMapper cart change ->
+      (remoteCartMapper cart change, cart)
+    )
+  remoteCartMapperFuzzer
+  cartFuzzer
+  changeFuzzer
+
+remoteCartWithUpdatingCartAndCartWithAddedItems : Fuzzer (Cart.RemoteCart, Api.Cart)
+remoteCartWithUpdatingCartAndCartWithAddedItems =
+  Fuzz.map4 (\ remoteCartMapper cart change quantity ->
+      let
+        updatedLines =
+          case cart.lines of
+            [] -> []
+            (x :: xs) ->
+              { x | quantity = x.quantity + quantity } :: xs
+        updatedCart = { cart | lines = updatedLines }
+      in
+        (remoteCartMapper cart change, updatedCart)
+    )
+  remoteCartMapperFuzzer
+  cartWithItemsFuzzer
+  changeFuzzer
+  (Fuzz.intRange 1 Random.maxInt)
+
+
+remoteCartWithUpdatingCartAndCartWithRemovedItems : Fuzzer (Cart.RemoteCart, Api.Cart)
+remoteCartWithUpdatingCartAndCartWithRemovedItems =
+  Fuzz.map4 (\ remoteCartMapper cart change quantity ->
+      let
+        updatedLines =
+          case cart.lines of
+            [] -> []
+            (x :: xs) ->
+              { x | quantity = max 0 (x.quantity - quantity) } :: xs
+        updatedCart = { cart | lines = updatedLines }
+      in
+        (remoteCartMapper cart change, updatedCart)
+    )
+  remoteCartMapperFuzzer
+  cartWithItemsFuzzer
+  changeFuzzer
+  (Fuzz.intRange 1 Random.maxInt)

@@ -114,8 +114,8 @@ type RemoteCart
   = Loading
   | Loaded Api.Cart
   | CreationFailed
-  | Updating Api.Cart (String, Int)
-  | Recreating Api.Cart (String, Int)
+  | Updating Api.Cart Change
+  | Recreating Api.Cart Change
 
 getCart : RemoteCart -> Maybe Api.Cart
 getCart remoteCart =
@@ -130,6 +130,9 @@ getCart remoteCart =
       Just cart
     Recreating cart change ->
       Just cart
+
+type alias Change =
+  (String, Int)
 
 ---
 
@@ -232,6 +235,9 @@ update msg model =
       ( { model | uiState = Closed }
       , []
       )
+    -- TODO: Add Broadcast effect for add and remove from cart
+    -- This can happen here too in the case that the cart update failed and
+    -- recreated the cart
     CartCreated cart ->
       ( { model | cart = Loaded cart }
       , [ Broadcast (CartEvent.CartCreated cart.id) ]
@@ -261,9 +267,10 @@ update msg model =
         Loaded cart ->
           updateCart model cart productVariantId newQuantity
         _ -> (model, [])
+    -- TODO: Add Broadcast effect for add and remove from cart
     CartUpdated cart ->
       ( { model | cart = Loaded cart }
-      , []
+      , calculateCartChangeEvent model.cart cart
       )
     CartUpdateFailed ->
       case model.cart of
@@ -291,7 +298,9 @@ update msg model =
         _ -> (model, [])
     CheckoutCompleted ->
       ( { model | cart = Loading }
-      , [ CreateCart Dict.empty ]
+      , [ CreateCart Dict.empty
+        , Broadcast CartEvent.CheckoutCompleted
+        ]
       )
 
 updateCart : Model -> Api.Cart -> String -> Int -> (Model, List Effect)
@@ -308,7 +317,7 @@ quantityOfProductVariant cart productVariantId =
     |> Dict.get productVariantId
     |> Maybe.withDefault 0
 
-calculateCartUpdateEffect : Api.Cart -> (String, Int) -> Effect
+calculateCartUpdateEffect : Api.Cart -> Change -> Effect
 calculateCartUpdateEffect cart (productVariantId, quantity) =
   let
     lineIdToEffect =
@@ -355,7 +364,7 @@ moreThan : Int -> Int -> Bool
 moreThan compare value =
   value > compare
 
-calculateCreateCartChange : Api.Cart -> (String, Int) -> Dict String Int
+calculateCreateCartChange : Api.Cart -> Change -> Dict String Int
 calculateCreateCartChange cart (id, quantity) =
   cart.lines
     |> List.map getProductVariantIdAndQuantity
@@ -363,6 +372,29 @@ calculateCreateCartChange cart (id, quantity) =
     |> Dict.insert id quantity
     |> Dict.filter (always (moreThan 0))
 
+cartItemCount : Api.Cart -> Int
+cartItemCount cart =
+  cart.lines
+    |> List.map .quantity
+    |> List.sum
+
+calculateCartChangeEvent : RemoteCart -> Api.Cart -> List Effect
+calculateCartChangeEvent remoteCart newCart =
+  let
+    newCartItemCount = cartItemCount newCart
+    existingCartItemCount =
+      remoteCart
+        |> getCart
+        |> Maybe.map cartItemCount
+        |> Maybe.withDefault 0
+
+  in
+    if newCartItemCount > existingCartItemCount then
+      [ Broadcast CartEvent.AddedToCart ]
+    else if newCartItemCount < existingCartItemCount then
+      [ Broadcast CartEvent.RemovedFromCart ]
+    else
+      []
 
 -- SUBSCRIPTIONS
 
