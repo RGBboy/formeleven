@@ -49,8 +49,8 @@ cartLineA =
   , subTotal = zeroCost
   }
 
-multipleQuantityLine : Api.CartLine
-multipleQuantityLine = { cartLineA | quantity = 2 }
+multipleQuantityLineA : Api.CartLine
+multipleQuantityLineA = { cartLineA | quantity = 2 }
 
 cartLineB : Api.CartLine
 cartLineB =
@@ -90,13 +90,21 @@ cartWithSingleItem =
   , subTotal = zeroCost
   }
 
+cartWithSingleItemUpdated : Api.Cart
+cartWithSingleItemUpdated =
+  { cartWithSingleItem | lines = [ multipleQuantityLineA ] }
+
 cartWithSingleItemMultipleQuantity : Api.Cart
 cartWithSingleItemMultipleQuantity =
-  { cartWithSingleItem | lines = [ multipleQuantityLine ] }
+  { cartWithSingleItem | lines = [ multipleQuantityLineA ] }
 
 cartWithMultipleItems : Api.Cart
 cartWithMultipleItems =
   { cartWithSingleItem | lines = [ cartLineA, cartLineB ] }
+
+cartWithMultipleItemsUpdated : Api.Cart
+cartWithMultipleItemsUpdated =
+  { cartWithSingleItem | lines = [ multipleQuantityLineA, cartLineB ] }
 
 modelWithLoadedCart : Api.Cart -> Cart.Model
 modelWithLoadedCart cart =
@@ -135,485 +143,818 @@ modelCartWithMultipleItemsUpdating =
 
 suite : Test
 suite =
-  describe "Flow"
+  describe "Cart"
     [ describe "init"
-        [ describe "when passed flags with cartId"
-            [ test "model.cart is Loading" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal Cart.Loading
-            , test "effect is LoadCart" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.second
-                    |> Expect.equal [ Cart.LoadCart cartId ]
-            ]
-        , describe "when passed flags without cartId"
-            [ test "model.cart is Loading" <|
-                \_ ->
-                  Cart.init flagsWithoutCartId
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal Cart.Loading
-            , test "effect is CreateCart with no lines" <|
-                \_ ->
-                  Cart.init flagsWithoutCartId
-                    |> Tuple.second
-                    |> Expect.equal [ Cart.CreateCart Dict.empty ]
-            ]
+        [ test """
+When passed flags with cartId
+Then model.cart is Loading
+And effect is LoadCart
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithCartId
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal Cart.Loading
+                  , Tuple.second
+                      >> Expect.equal [ Cart.LoadCart cartId ]
+                  ]
+                  result
+        , test """
+When passed flags without cartId
+Then model.cart is Loading
+And effect is CreateCart with no lines
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithoutCartId
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal Cart.Loading
+                  , Tuple.second
+                      >> Expect.equal [ Cart.CreateCart Dict.empty ]
+                  ]
+                  result
         ]
-
-
-
     , describe "update"
-        [ describe "when create cart succeeds"
-            [ test "model.cart is Loaded with cart" <|
-                \_ ->
-                  Cart.init flagsWithoutCartId
-                    |> Tuple.first
-                    |> Cart.update (Cart.CartCreated emptyCart)
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal (Cart.Loaded emptyCart)
-            , test "effect is Broadcast CartEvent.CartCreated" <|
-                \_ ->
-                  Cart.init flagsWithoutCartId
-                    |> Tuple.first
-                    |> Cart.update (Cart.CartCreated emptyCart)
-                    |> Tuple.second
-                    |> Expect.equal [ Cart.Broadcast (CartEvent.CartCreated emptyCart.id) ]
-            ]
-        , describe "when create cart fails"
-            [ test "model.cart is CreationFailed" <|
-                \_ ->
-                  Cart.init flagsWithoutCartId
-                    |> Tuple.first
-                    |> Cart.update Cart.CartCreationFailed
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal Cart.CreationFailed
-            ]
-        , describe "when load cart succeeds"
-            [ test "model.cart is Loaded with cart" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> Cart.update (Cart.CartLoaded emptyCart)
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal (Cart.Loaded emptyCart)
-            ]
-        , describe "when load cart fails"
-            [ test "model.cart is Loading" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> Cart.update Cart.CartLoadingFailed
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal Cart.Loading
-            , test "effect is CreateCart with no lines" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> Cart.update Cart.CartLoadingFailed
-                    |> Tuple.second
-                    |> Expect.equal [ Cart.CreateCart Dict.empty ]
-            ]
-        , describe "and create cart succeeds"
-            [ test "model.cart is empty cart" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> Cart.update Cart.CartLoadingFailed
-                    |> Tuple.first
-                    |> Cart.update (Cart.CartCreated emptyCart)
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal (Cart.Loaded emptyCart)
-            , test "effect is Broadcast CartEvent.CartCreated" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> Cart.update Cart.CartLoadingFailed
-                    |> Tuple.first
-                    |> Cart.update (Cart.CartCreated emptyCart)
-                    |> Tuple.second
-                    |> Expect.equal [ Cart.Broadcast (CartEvent.CartCreated emptyCart.id) ]
-            ]
-        , describe "and create cart fails"
-            [ test "model.cart is CreationFailed" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> Cart.update Cart.CartLoadingFailed
-                    |> Tuple.first
-                    |> Cart.update Cart.CartCreationFailed
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal Cart.CreationFailed
-            , test "effects are empty" <|
-                \_ ->
-                  Cart.init flagsWithCartId
-                    |> Tuple.first
-                    |> Cart.update Cart.CartLoadingFailed
-                    |> Tuple.first
-                    |> Cart.update Cart.CartCreationFailed
-                    |> Tuple.second
-                    |> Expect.equal []
-            ]
-        , describe "when empty cart Loaded"
-            [ describe "when user AddToCart"
-                [ test "model.cart is Updating with correct quantity" <|
-                    \_ ->
-                      modelEmptyCartLoaded
-                        |> Cart.update (Cart.AddToCart "productVariantId")
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Updating emptyCart ("productVariantId", 1))
-                , test "effect is CartLinesAdd with correct quantity" <|
-                    \_ ->
-                      modelEmptyCartLoaded
-                        |> Cart.update (Cart.AddToCart "productVariantId")
-                        |> Tuple.second
-                        |> Expect.equal
-                            [ Cart.CartLinesAdd
-                              { cartId = emptyCart.id
-                              , productVariantId = "productVariantId"
-                              , quantity = 1
-                              }
-                            ]
-                ]
-            , describe "when user UpdateCart"
-                [ test "model.cart is Updating" <|
-                    \_ ->
-                      modelEmptyCartLoaded
-                        |> Cart.update (Cart.UpdateCart "productVariantId" 1)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Updating emptyCart ("productVariantId", 1))
-                , test "effect is CartLinesAdd" <|
-                    \_ ->
-                      modelEmptyCartLoaded
-                        |> Cart.update (Cart.UpdateCart "productVariantId" 1)
-                        |> Tuple.second
-                        |> Expect.equal
-                            [ Cart.CartLinesAdd
-                              { cartId = emptyCart.id
-                              , productVariantId = "productVariantId"
-                              , quantity = 1
-                              }
-                            ]
-                ]
-            , describe "when user triggers checkout"
-                [ test "model.cart stays the same" <|
-                    \_ ->
-                      modelEmptyCartLoaded
-                        |> Cart.update Cart.Checkout
-                        |> Tuple.first
-                        |> Expect.equal modelEmptyCartLoaded
-                , test "effects are empty" <|
-                    \_ ->
-                      modelEmptyCartLoaded
-                        |> Cart.update Cart.Checkout
-                        |> Tuple.second
-                        |> Expect.equal []
-                ]
-            ]
-        , describe "when cart with single item is Loaded"
-            [ describe "when user AddToCart"
-                [ test "model.cart is Updating with correct quantity" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Updating cartWithSingleItem (cartLineA.productVariant.id, 2))
-                , test "effect is CartLinesAdd with correct quantity" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
-                        |> Tuple.second
-                        |> Expect.equal
-                            [ Cart.CartLinesUpdate
+        [ test """
+Given model is init without cartId
+When CartCreated
+Then model.cart is Loaded with cart
+And effect is Broadcast CartEvent.CartCreated
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithoutCartId
+                  |> Tuple.first
+                  |> Cart.update (Cart.CartCreated emptyCart)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded emptyCart)
+                  , Tuple.second
+                      >> Expect.equal [ Cart.Broadcast (CartEvent.CartCreated emptyCart.id) ]
+                  ]
+                  result
+        , test """
+Given model is init without cartId
+When CartCreationFailed
+Then model.cart is CreationFailed
+And effect is nothing
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithoutCartId
+                  |> Tuple.first
+                  |> Cart.update Cart.CartCreationFailed
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal Cart.CreationFailed
+                  , Tuple.second
+                      >> Expect.equal []
+                  ]
+                  result
+        , test """
+Given model is init with cartId
+When CartLoaded
+Then model.cart is Loaded with cart
+And effect is nothing
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithCartId
+                  |> Tuple.first
+                  |> Cart.update (Cart.CartLoaded emptyCart)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded emptyCart)
+                  , Tuple.second
+                      >> Expect.equal []
+                  ]
+                  result
+        , test """
+Given model is init with cartId
+When CartLoadingFailed
+Then model.cart is Loading
+And effect is CreateCart with no lines
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithCartId
+                  |> Tuple.first
+                  |> Cart.update Cart.CartLoadingFailed
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal Cart.Loading
+                  , Tuple.second
+                      >> Expect.equal [ Cart.CreateCart Dict.empty ]
+                  ]
+                  result
+        , test """
+Given model is init with cartId
+When CartLoadingFailed
+And CartCreated
+Then model.cart is Loaded with empty cart
+And effect is Broadcast CartEvent.CartCreated
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithCartId
+                  |> Tuple.first
+                  |> Cart.update Cart.CartLoadingFailed
+                  |> Tuple.first
+                  |> Cart.update (Cart.CartCreated emptyCart)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded emptyCart)
+                  , Tuple.second
+                      >> Expect.equal [ Cart.Broadcast (CartEvent.CartCreated emptyCart.id) ]
+                  ]
+                  result
+        , test """
+Given model is init with cartId
+When CartLoadingFailed
+And CartCreationFailed
+Then model.cart is CreationFailed
+And effect is nothing
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithCartId
+                  |> Tuple.first
+                  |> Cart.update Cart.CartLoadingFailed
+                  |> Tuple.first
+                  |> Cart.update Cart.CartCreationFailed
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal Cart.CreationFailed
+                  , Tuple.second
+                      >> Expect.equal []
+                  ]
+                  result
+        , test """
+Given model is init with cartId
+When CartLoadingFailed
+And CartCreationFailed
+And user Retry
+Then model.cart is Loading
+And effect is CreateCart with no lines
+""" <|
+            \_ ->
+              let
+                result = Cart.init flagsWithCartId
+                  |> Tuple.first
+                  |> Cart.update Cart.CartLoadingFailed
+                  |> Tuple.first
+                  |> Cart.update Cart.CartCreationFailed
+                  |> Tuple.first
+                  |> Cart.update Cart.Retry
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal Cart.Loading
+                  , Tuple.second
+                      >> Expect.equal [ Cart.CreateCart Dict.empty ]
+                  ]
+                  result
+        , test """
+Given empty cart is Loaded
+When user AddToCart
+Then model.cart is Updating with correct quantity
+And effect is CartLinesAdd with correct quantity
+""" <|
+            \_ ->
+              let
+                result = modelEmptyCartLoaded
+                  |> Cart.update (Cart.AddToCart "productVariantId")
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating emptyCart ("productVariantId", 1))
+                  , Tuple.second
+                      >> Expect.equal
+                        [ Cart.CartLinesAdd
+                            { cartId = emptyCart.id
+                            , productVariantId = "productVariantId"
+                            , quantity = 1
+                            }
+                        ]
+                  ]
+                  result
+        , test """
+Given empty cart is Loaded
+When user UpdateCart with item
+Then model.cart is Updating
+And effect is CartLinesAdd
+""" <|
+            \_ ->
+              let
+                result = modelEmptyCartLoaded
+                  |> Cart.update (Cart.UpdateCart "productVariantId" 1)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating emptyCart ("productVariantId", 1))
+                  , Tuple.second
+                      >> Expect.equal
+                        [ Cart.CartLinesAdd
+                            { cartId = emptyCart.id
+                            , productVariantId = "productVariantId"
+                            , quantity = 1
+                            }
+                        ]
+                  ]
+                  result
+        , test """
+Given empty cart is Loaded
+When user triggers checkout
+Then model.cart stays the same
+And effect is nothing
+""" <|
+            \_ ->
+              let
+                result = modelEmptyCartLoaded
+                  |> Cart.update Cart.Checkout
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> Expect.equal modelEmptyCartLoaded
+                  , Tuple.second
+                      >> Expect.equal []
+                  ]
+                  result
+        , test """
+Given cart with single item is Loaded
+When user AddToCart
+Then model.cart is Updating with correct quantity
+And effect is CartLinesAdd with correct quantity
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemLoaded
+                  |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating cartWithSingleItem (cartLineA.productVariant.id, 2))
+                  , Tuple.second
+                      >> Expect.equal
+                          [ Cart.CartLinesUpdate
                               { cartId = cartWithSingleItem.id
                               , lineId = cartLineA.id
                               , quantity = 2
                               }
-                            ]
-                ]
-            , describe "when user UpdateCart"
-                [ test "model.cart is Updating" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 2)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Updating cartWithSingleItem (cartLineA.productVariant.id, 2))
-                , test "effect is CartLinesUpdate" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 2)
-                        |> Tuple.second
-                        |> Expect.equal
+                          ]
+                  ]
+                  result
+        , test """
+Given cart with single item is Loaded
+When user adds more of an an existing item
+Then model.cart is Updating with correct quantity
+And effect is CartLinesUpdate with correct quantity
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 2)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating cartWithSingleItem (cartLineA.productVariant.id, 2))
+                  , Tuple.second
+                      >> Expect.equal
                           [ Cart.CartLinesUpdate
-                            { cartId = cartWithSingleItem.id
-                            , lineId = cartLineA.id
-                            , quantity = 2
-                            }
+                              { cartId = cartWithSingleItem.id
+                              , lineId = cartLineA.id
+                              , quantity = 2
+                              }
                           ]
-                ]
-            , describe "when user removes all of an item"
-                [ test "model.cart is Updating" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Updating cartWithSingleItem (cartLineA.productVariant.id, 0))
-                , test "effect is CartLinesRemove" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
-                        |> Tuple.second
-                        |> Expect.equal
+                  ]
+                  result
+        , test """
+Given cart with single item is Loaded
+When user removes all of an item
+Then model.cart is Updating with correct quantity
+And effect is CartLinesRemove
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating cartWithSingleItem (cartLineA.productVariant.id, 0))
+                  , Tuple.second
+                      >> Expect.equal
                           [ Cart.CartLinesRemove
-                            { cartId = cartWithSingleItem.id
-                            , lineId = cartLineA.id
-                            }
+                              { cartId = cartWithSingleItem.id
+                              , lineId = cartLineA.id
+                              }
                           ]
-                ]
-            , describe "when user triggers checkout"
-                [ test "model.cart stays the same" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update Cart.Checkout
-                        |> Tuple.first
-                        |> Expect.equal modelCartWithSingleItemLoaded
-                , test "effects have StartCheckout" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update Cart.Checkout
-                        |> Tuple.second
-                        |> List.member (Cart.StartCheckout cartWithSingleItem.checkoutUrl)
-                        |> Expect.true "Expected list to contain StartCheckout"
-                , test "effects have Broadcast CartEvent.CheckoutStarted" <|
-                    \_ ->
-                      modelCartWithSingleItemLoaded
-                        |> Cart.update Cart.Checkout
-                        |> Tuple.second
-                        |> List.member (Cart.Broadcast CartEvent.CheckoutStarted)
-                        |> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutStarted"
-                ]
-            ]
-        , describe "when cart with single item and multiple quantity is Loaded"
-            [ describe "when user AddToCart"
-                [ test "model.cart is Updating with correct quantity" <|
-                    \_ ->
-                      modelCartWithSingleItemMultipleQuantityLoaded
-                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Updating cartWithSingleItemMultipleQuantity (cartLineA.productVariant.id, 3))
-                , test "effect is CartLinesAdd with correct quantity" <|
-                    \_ ->
-                      modelCartWithSingleItemMultipleQuantityLoaded
-                        |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
-                        |> Tuple.second
-                        |> Expect.equal
-                            [ Cart.CartLinesUpdate
+                  ]
+                  result
+        , test """
+Given cart with single item is Loaded
+When user triggers Checkout
+Then model.cart stays the same
+And effects have StartCheckout
+And effects have Broadcast CartEvent.CheckoutStarted
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemLoaded
+                  |> Cart.update Cart.Checkout
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> Expect.equal modelCartWithSingleItemLoaded
+                  , Tuple.second
+                      >> List.member (Cart.StartCheckout cartWithSingleItem.checkoutUrl)
+                      >> Expect.true "Expected list to contain StartCheckout"
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast CartEvent.CheckoutStarted)
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutStarted"
+                  ]
+                  result
+        , test """
+Given cart with single item and multiple quantity is Loaded
+When user AddToCart
+Then model.cart is Updating with correct quantity
+And effect is CartLinesAdd with correct quantity
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemMultipleQuantityLoaded
+                  |> Cart.update (Cart.AddToCart cartLineA.productVariant.id)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating cartWithSingleItemMultipleQuantity (cartLineA.productVariant.id, 3))
+                  , Tuple.second
+                      >> Expect.equal
+                          [ Cart.CartLinesUpdate
                               { cartId = cartWithSingleItemMultipleQuantity.id
                               , lineId = cartLineA.id
                               , quantity = 3
                               }
-                            ]
-                ]
-            , describe "when user removes item"
-                [ test "model.cart is Updating" <|
-                    \_ ->
-                      modelCartWithSingleItemMultipleQuantityLoaded
-                        |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 1)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Updating cartWithSingleItemMultipleQuantity (cartLineA.productVariant.id, 1))
-                , test "effect is CartLinesUpdate" <|
-                    \_ ->
-                      modelCartWithSingleItemMultipleQuantityLoaded
-                        |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 1)
-                        |> Tuple.second
-                        |> Expect.equal
+                          ]
+                  ]
+                  result
+        , test """
+Given cart with single item and multiple quantity is Loaded
+When user adds an existing item
+Then model.cart is Updating with correct quantity
+And effect is CartLinesAdd with correct quantity
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemMultipleQuantityLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 4)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating cartWithSingleItemMultipleQuantity (cartLineA.productVariant.id, 4))
+                  , Tuple.second
+                      >> Expect.equal
                           [ Cart.CartLinesUpdate
-                            { cartId = cartWithSingleItemMultipleQuantity.id
-                            , lineId = cartLineA.id
-                            , quantity = 1
-                            }
+                              { cartId = cartWithSingleItemMultipleQuantity.id
+                              , lineId = cartLineA.id
+                              , quantity = 4
+                              }
                           ]
-                ]
-            ]
-        , describe "when cart with single item is Updating"
-            [ describe "and message is CartUpdated"
-                [ test "model.cart is updated cart" <|
-                    \_ ->
-                      modelCartWithSingleItemUpdating
-                        |> Cart.update (Cart.CartUpdated cartWithSingleItemMultipleQuantity)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Loaded cartWithSingleItemMultipleQuantity)
-                , test "effects are Broadcast CartEvent.AddedToCart" <|
-                    \_ ->
-                      modelCartWithSingleItemUpdating
-                        |> Cart.update (Cart.CartUpdated cartWithSingleItemMultipleQuantity)
-                        |> Tuple.second
-                        |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
-                ]
-            , describe "and message is CartUpdateFailed"
-                -- handles the case for expired cart
-                [ test "model.cart is Recreating" <|
-                    \_ ->
-                      modelCartWithSingleItemUpdating
-                        |> Cart.update (Cart.CartUpdateFailed)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Recreating cartWithSingleItem (cartLineA.productVariant.id, 2))
-                , test "effect is CreateCart" <|
-                    \_ ->
-                      let
-                        linesToCreate =
-                          [ (cartLineA.productVariant.id, 2) ]
-                            |> Dict.fromList
-                      in
-                        modelCartWithSingleItemUpdating
-                          |> Cart.update (Cart.CartUpdateFailed)
-                          |> Tuple.second
-                          |> Expect.equal [ Cart.CreateCart linesToCreate ]
-                ]
-            ]
-        , describe "when cart with multiple items is Updating"
-            [ describe "and message is CartUpdated"
-                [ test "model.cart is updated cart" <|
-                    \_ ->
-                      modelCartWithMultipleItemsUpdating
-                        |> Cart.update (Cart.CartUpdated cartWithSingleItemMultipleQuantity)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Loaded cartWithSingleItemMultipleQuantity)
-                , test "effects are empty" <|
-                    \_ ->
-                      modelCartWithMultipleItemsUpdating
-                        |> Cart.update (Cart.CartUpdated cartWithSingleItemMultipleQuantity)
-                        |> Tuple.second
-                        |> Expect.equal []
-                ]
-            , describe "and msg is CartUpdateFailed"
-                [ test "model.cart is recreating cart" <|
-                    \_ ->
-                      modelCartWithMultipleItemsUpdating
-                        |> Cart.update (Cart.CartUpdateFailed)
-                        |> Tuple.first
-                        |> .cart
-                        |> Expect.equal (Cart.Recreating cartWithMultipleItems (cartLineA.productVariant.id, 2))
-                , test "effect is CreateCart with all lines" <|
-                    \_ ->
-                      let
-                        linesToCreate =
-                          [ (cartLineA.productVariant.id, 2)
-                          , (cartLineB.productVariant.id, 1)
+                  ]
+                  result
+        , test """
+Given cart with single item and multiple quantity is Loaded
+When user removes some of an item
+Then model.cart is Updating with correct quantity
+And effect is CartLinesAdd with correct quantity
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemMultipleQuantityLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 1)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating cartWithSingleItemMultipleQuantity (cartLineA.productVariant.id, 1))
+                  , Tuple.second
+                      >> Expect.equal
+                          [ Cart.CartLinesUpdate
+                              { cartId = cartWithSingleItemMultipleQuantity.id
+                              , lineId = cartLineA.id
+                              , quantity = 1
+                              }
                           ]
-                            |> Dict.fromList
-                      in
-                        modelCartWithMultipleItemsUpdating
-                          |> Cart.update (Cart.CartUpdateFailed)
-                          |> Tuple.second
-                          |> Expect.equal [ Cart.CreateCart linesToCreate ]
-                , test "effect is CreateCart without removed lines" <|
-                    \_ ->
-                      let
-                        linesToCreate =
-                          [ (cartLineB.productVariant.id, 1) ]
-                            |> Dict.fromList
-                        model =
-                          modelCartWithMultipleItemsLoaded
-                            |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
-                            |> Tuple.first
-                      in
-                        model
-                          |> Cart.update (Cart.CartUpdateFailed)
-                          |> Tuple.second
-                          |> Expect.equal [ Cart.CreateCart linesToCreate ]
-                ]
-            ]
-        , describe "when CheckoutCompleted"
-            [ test "model.cart is Loading" <|
-                \_ ->
-                  modelCartWithMultipleItemsLoaded
-                    |> Cart.update (Cart.CheckoutCompleted)
-                    |> Tuple.first
-                    |> .cart
-                    |> Expect.equal Cart.Loading
-            , test "effects have CreateCart with no items" <|
-                \_ ->
-                  modelCartWithMultipleItemsLoaded
-                    |> Cart.update (Cart.CheckoutCompleted)
-                    |> Tuple.second
-                    |> List.member (Cart.CreateCart Dict.empty)
-                    |> Expect.true "Expected list to contain Cart.CreateCart"
-            , test "effects have BroadCast CartEvent.CheckoutCompleted" <|
-                \_ ->
-                  modelCartWithMultipleItemsLoaded
-                    |> Cart.update (Cart.CheckoutCompleted)
-                    |> Tuple.second
-                    |> List.member (Cart.Broadcast CartEvent.CheckoutCompleted)
-                    |> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutCompleted"
-            ]
+                  ]
+                  result
+        , test """
+Given cart with single item and multiple quantity is Loaded
+When user removes all of an item
+Then model.cart is Updating with correct quantity
+And effect is CartLinesAdd with correct quantity
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemMultipleQuantityLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Updating cartWithSingleItemMultipleQuantity (cartLineA.productVariant.id, 0))
+                  , Tuple.second
+                      >> Expect.equal
+                          [ Cart.CartLinesRemove
+                              { cartId = cartWithSingleItemMultipleQuantity.id
+                              , lineId = cartLineA.id
+                              }
+                          ]
+                  ]
+                  result
+        , test """
+Given cart with single item is Updating
+When CartUpdated
+Then model.cart is Loaded with updated cart
+And effect is Broadcast CartEvent.AddedToCart
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemUpdating
+                  |> Cart.update (Cart.CartUpdated cartWithSingleItemUpdated)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded cartWithSingleItemUpdated)
+                  , Tuple.second
+                      >> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
+                  ]
+                  result
+
+-- handles the case for expired cart
+        , test """
+Given cart with single item is Updating
+When CartUpdateFailed
+Then model.cart is Recreating with updated cart
+And effect is CreateCart
+""" <|
+            \_ ->
+              let
+                result = modelCartWithSingleItemUpdating
+                  |> Cart.update Cart.CartUpdateFailed
+                linesToCreate =
+                  [ (cartLineA.productVariant.id, 2) ]
+                    |> Dict.fromList
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Recreating cartWithSingleItem (cartLineA.productVariant.id, 2))
+                  , Tuple.second
+                      >> Expect.equal [ Cart.CreateCart linesToCreate ]
+                  ]
+                  result
+        , test """
+Given cart with multiple items is Updating
+When CartUpdated
+Then model.cart is Loaded with updated cart
+And effect is Broadcast CartEvent.AddedToCart
+""" <|
+            \_ ->
+              let
+                result = modelCartWithMultipleItemsUpdating
+                  |> Cart.update (Cart.CartUpdated cartWithMultipleItemsUpdated)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded cartWithMultipleItemsUpdated)
+                  , Tuple.second
+                      >> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
+                  ]
+                  result
+        , test """
+Given cart with multiple items is Updating
+When CartUpdateFailed
+Then model.cart is Recreating
+And effect is CreateCart with updated lines and quantities
+""" <|
+            \_ ->
+              let
+                result = modelCartWithMultipleItemsUpdating
+                  |> Cart.update Cart.CartUpdateFailed
+                linesToCreate =
+                  [ (cartLineA.productVariant.id, 2)
+                  , (cartLineB.productVariant.id, 1)
+                  ]
+                    |> Dict.fromList
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Recreating cartWithMultipleItems (cartLineA.productVariant.id, 2))
+                  , Tuple.second
+                      >> Expect.equal [ Cart.CreateCart linesToCreate ]
+                  ]
+                  result
+        , test """
+Given cart with multiple items is Updating
+And a line has been removed
+When CartUpdateFailed
+Then model.cart is Recreating
+And effect is CreateCart with updated lines and quantities
+""" <|
+            \_ ->
+              let
+                result = modelCartWithMultipleItemsLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
+                  |> Tuple.first
+                  |> Cart.update Cart.CartUpdateFailed
+                linesToCreate =
+                  [ (cartLineB.productVariant.id, 1) ]
+                    |> Dict.fromList
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Recreating cartWithMultipleItems (cartLineA.productVariant.id, 0))
+                  , Tuple.second
+                      >> Expect.equal [ Cart.CreateCart linesToCreate ]
+                  ]
+                  result
+
+        , test """
+Given cart is Updating with additional items
+When CartUpdateFailed
+And cart is recreated with CartCreated
+Then model.cart is Loaded with updated cart
+And effects have Broadcast CartEvents.CartCreated
+And effects have Broadcast CartEvents.AddedToCart
+""" <|
+            \_ ->
+              let
+                updatedLineA = { cartLineA | quantity = 3 }
+                updatedCart =
+                  { cartWithMultipleItems | lines = [ updatedLineA, cartLineB ] }
+                result = modelCartWithMultipleItemsLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 3)
+                  |> Tuple.first
+                  |> Cart.update Cart.CartUpdateFailed
+                  |> Tuple.first
+                  |> Cart.update (Cart.CartCreated updatedCart)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded updatedCart)
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast (CartEvent.CartCreated updatedCart.id))
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.CartCreated"
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast CartEvent.AddedToCart)
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.AddedToCart"
+                  ]
+                  result
+        , test """
+Given cart with items is Updating with less of an item
+When CartUpdateFailed
+And cart is recreated with CartCreated
+Then model.cart is Loaded with updated cart
+And effects have Broadcast CartEvents.CartCreated
+And effects have Broadcast CartEvents.RemovedFromCart
+""" <|
+            \_ ->
+              let
+                updatedLineA = { cartLineA | quantity = 1 }
+                updatedCart =
+                  { cartWithSingleItemMultipleQuantity | lines = [ updatedLineA ] }
+                result = modelCartWithSingleItemMultipleQuantityLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 1)
+                  |> Tuple.first
+                  |> Cart.update Cart.CartUpdateFailed
+                  |> Tuple.first
+                  |> Cart.update (Cart.CartCreated updatedCart)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded updatedCart)
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast (CartEvent.CartCreated updatedCart.id))
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.CartCreated"
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast CartEvent.RemovedFromCart)
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.RemovedFromCart"
+                  ]
+                  result
+        , test """
+Given cart is Updating with removed all of an item
+When CartUpdateFailed
+And cart is recreated with CartCreated
+Then model.cart is Loaded with updated cart
+And effects have Broadcast CartEvents.CartCreated
+And effects have Broadcast CartEvents.RemovedFromCart
+""" <|
+            \_ ->
+              let
+                updatedCart =
+                  { cartWithMultipleItems | lines = [ cartLineB ] }
+                result = modelCartWithMultipleItemsLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 0)
+                  |> Tuple.first
+                  |> Cart.update Cart.CartUpdateFailed
+                  |> Tuple.first
+                  |> Cart.update (Cart.CartCreated updatedCart)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded updatedCart)
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast (CartEvent.CartCreated updatedCart.id))
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.CartCreated"
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast CartEvent.RemovedFromCart)
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.RemovedFromCart"
+                  ]
+                  result
+        , test """
+Given cart is Updating with additional items
+When CartUpdateFailed
+And CartCreationFailed
+And user Retry
+Then model.cart is Recreating
+And effect is CreateCart with correct lines and quantities
+""" <|
+            \_ ->
+              let
+                linesToCreate =
+                  [ (cartLineA.productVariant.id, 3)
+                  , (cartLineB.productVariant.id, 1)
+                  ]
+                    |> Dict.fromList
+                result = modelCartWithMultipleItemsLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 3)
+                  |> Tuple.first
+                  |> Cart.update Cart.CartUpdateFailed
+                  |> Tuple.first
+                  |> Cart.update Cart.CartCreationFailed
+                  |> Tuple.first
+                  |> Cart.update Cart.Retry
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Recreating cartWithMultipleItems (cartLineA.productVariant.id, 3) )
+                  , Tuple.second
+                      >> Expect.equal [ Cart.CreateCart linesToCreate ]
+                  ]
+                  result
+        , test """
+Given cart is Updating with additional items
+When CartUpdateFailed
+And CartCreationFailed
+And user Retry
+And cart is recreated with CartCreated
+Then model.cart is Loaded with updated cart
+And effects have Broadcast CartEvents.CartCreated
+And effects have Broadcast CartEvents.AddedToCart
+""" <|
+            \_ ->
+              let
+                updatedLineA = { cartLineA | quantity = 3 }
+                updatedCart =
+                  { cartWithMultipleItems | lines = [ updatedLineA, cartLineB ] }
+                result = modelCartWithMultipleItemsLoaded
+                  |> Cart.update (Cart.UpdateCart cartLineA.productVariant.id 3)
+                  |> Tuple.first
+                  |> Cart.update Cart.CartUpdateFailed
+                  |> Tuple.first
+                  |> Cart.update Cart.CartCreationFailed
+                  |> Tuple.first
+                  |> Cart.update Cart.Retry
+                  |> Tuple.first
+                  |> Cart.update (Cart.CartCreated updatedCart)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal (Cart.Loaded updatedCart)
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast (CartEvent.CartCreated updatedCart.id))
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.CartCreated"
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast CartEvent.AddedToCart)
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.AddedToCart"
+                  ]
+                  result
+        , test """
+Given cart is Loaded
+When CheckoutCompleted
+Then model.cart is Loading
+And effects have CreateCart with no items
+And effects have BroadCast CartEvent.CheckoutCompleted
+""" <|
+            \_ ->
+              let
+                result = modelCartWithMultipleItemsLoaded
+                  |> Cart.update (Cart.CheckoutCompleted)
+              in
+                Expect.all
+                  [ Tuple.first
+                      >> .cart
+                      >> Expect.equal Cart.Loading
+                  , Tuple.second
+                      >> List.member (Cart.CreateCart Dict.empty)
+                      >> Expect.true "Expected list to contain Cart.CreateCart"
+                  , Tuple.second
+                      >> List.member (Cart.Broadcast CartEvent.CheckoutCompleted)
+                      >> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutCompleted"
+                  ]
+                  result
         ]
 
 
-    -- TODO: implement returning diff of items with the event
+-- TODO: implement returning diff of items with the event
     , describe "calculateCartChangeEvent"
-        [ describe "when RemoteCart has no cart and new cart has items"
-            [ fuzz2
-                remoteCartWithNoCartFuzzer
-                cartWithItemsFuzzer
-                "effect is Broadcast CartEvent.AddedToCart" <|
-                  \a b ->
-                    Cart.calculateCartChangeEvent a b
-                      |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
-            ]
-        , describe "when RemoteCart has no cart and new cart no items"
-            [ fuzz2
-                remoteCartWithNoCartFuzzer
-                cartWithNoItemsFuzzer
-                "effect is empty list" <|
-                  \a b ->
-                    Cart.calculateCartChangeEvent a b
-                      |> Expect.equal []
-            ]
-        , describe "when RemoteCart has existing cart and new cart has same items"
-            [ fuzz
-                remoteCartWithUpdatingCartAndCartWithSameItems
-                "effect is empty list" <|
-                  \(a, b) ->
-                    Cart.calculateCartChangeEvent a b
-                      |> Expect.equal []
-            ]
-        , describe "when RemoteCart has existing cart and new cart has items added"
-            [ fuzz
-                remoteCartWithUpdatingCartAndCartWithAddedItems
-                "effect is Broadcast CartEvent.AddedToCart" <|
-                  \(a, b) ->
-                    Cart.calculateCartChangeEvent a b
-                      |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
-            ]
-        , describe "when RemoteCart has existing cart and new cart has items removed"
-            [ fuzz
-                remoteCartWithUpdatingCartAndCartWithRemovedItems
-                "effect is Broadcast CartEvent.RemovedFromCart" <|
-                  \(a, b) ->
-                    Cart.calculateCartChangeEvent a b
-                      |> Expect.equal [ Cart.Broadcast CartEvent.RemovedFromCart ]
-            ]
+        [ fuzz2
+            remoteCartWithNoCartFuzzer
+            cartWithItemsFuzzer
+            """
+When RemoteCart has no cart
+And new cart has items
+Then effect is Broadcast CartEvent.AddedToCart
+""" <|
+            \a b ->
+              Cart.calculateCartChangeEvent a b
+                |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
+        , fuzz2
+            remoteCartWithNoCartFuzzer
+            cartWithNoItemsFuzzer
+            """
+When RemoteCart has no cart
+And new cart no items
+Then effect is empty list
+""" <|
+            \a b ->
+              Cart.calculateCartChangeEvent a b
+                |> Expect.equal []
+        , fuzz
+            remoteCartWithUpdatingCartAndCartWithSameItems
+            """
+When RemoteCart has existing cart
+And new cart has same items
+Then effect is empty list
+""" <|
+            \(a, b) ->
+              Cart.calculateCartChangeEvent a b
+                |> Expect.equal []
+        , fuzz
+            remoteCartWithUpdatingCartAndCartWithAddedItems
+            """
+When RemoteCart has existing cart
+And new cart has items added
+Then effect is Broadcast CartEvent.AddedToCart
+""" <|
+            \(a, b) ->
+              Cart.calculateCartChangeEvent a b
+                |> Expect.equal [ Cart.Broadcast CartEvent.AddedToCart ]
+        , fuzz
+            remoteCartWithUpdatingCartAndCartWithRemovedItems
+            """
+When RemoteCart has existing cart
+And new cart has items removed
+Then effect is Broadcast CartEvent.RemovedFromCart
+""" <|
+            \(a, b) ->
+              Cart.calculateCartChangeEvent a b
+                |> Expect.equal [ Cart.Broadcast CartEvent.RemovedFromCart ]
         ]
     ]
 
@@ -699,6 +1040,7 @@ remoteCartMapperFuzzer =
     [ Fuzz.constant ((\ cart change -> Cart.Loaded cart ))
     , Fuzz.constant (Cart.Updating)
     , Fuzz.constant (Cart.Recreating)
+    , Fuzz.constant (Cart.RecreationFailed)
     ]
 
 remoteCartWithUpdatingCartAndCartWithSameItems : Fuzzer (Cart.RemoteCart, Api.Cart)

@@ -113,9 +113,10 @@ cartLinesUpdate config input =
 type RemoteCart
   = Loading
   | Loaded Api.Cart
-  | CreationFailed
+  | CreationFailed -- No cart was loaded and we tried to create one
   | Updating Api.Cart Change
   | Recreating Api.Cart Change
+  | RecreationFailed Api.Cart Change -- We had a cart and needed to recreate it
 
 getCart : RemoteCart -> Maybe Api.Cart
 getCart remoteCart =
@@ -130,6 +131,24 @@ getCart remoteCart =
       Just cart
     Recreating cart change ->
       Just cart
+    RecreationFailed cart change ->
+      Just cart
+
+getCartWithChange : RemoteCart -> Maybe (Api.Cart, Change)
+getCartWithChange remoteCart =
+  case remoteCart of
+    Loading ->
+      Nothing
+    Loaded cart ->
+      Nothing
+    CreationFailed ->
+      Nothing
+    Updating cart change ->
+      Just (cart, change)
+    Recreating cart change ->
+      Just (cart, change)
+    RecreationFailed cart change ->
+      Just (cart, change)
 
 type alias Change =
   (String, Int)
@@ -194,6 +213,7 @@ type Msg
   | AddToCart String
   | Checkout
   | CheckoutCompleted
+  | Retry
 
 addToCart : String -> Msg
 addToCart productVariantId =
@@ -235,17 +255,22 @@ update msg model =
       ( { model | uiState = Closed }
       , []
       )
-    -- TODO: Add Broadcast effect for add and remove from cart
-    -- This can happen here too in the case that the cart update failed and
-    -- recreated the cart
     CartCreated cart ->
       ( { model | cart = Loaded cart }
-      , [ Broadcast (CartEvent.CartCreated cart.id) ]
+      , List.append
+          [ Broadcast (CartEvent.CartCreated cart.id) ]
+          (calculateCartChangeEvent model.cart cart)
       )
     CartCreationFailed ->
-      ( { model | cart = CreationFailed }
-      , []
-      )
+      let
+        remoteCart = model.cart
+          |> getCartWithChange
+          |> Maybe.map (\ (cart, change) -> RecreationFailed cart change )
+          |> Maybe.withDefault CreationFailed
+      in
+        ( { model | cart = remoteCart }
+        , []
+        )
     CartLoaded cart ->
       ( { model | cart = Loaded cart }
       , []
@@ -267,7 +292,6 @@ update msg model =
         Loaded cart ->
           updateCart model cart productVariantId newQuantity
         _ -> (model, [])
-    -- TODO: Add Broadcast effect for add and remove from cart
     CartUpdated cart ->
       ( { model | cart = Loaded cart }
       , calculateCartChangeEvent model.cart cart
@@ -302,6 +326,17 @@ update msg model =
         , Broadcast CartEvent.CheckoutCompleted
         ]
       )
+    Retry ->
+      case model.cart of
+        CreationFailed ->
+          ( { model | cart = Loading }
+          , [ CreateCart Dict.empty ]
+          )
+        RecreationFailed cart change ->
+          ( { model | cart = Recreating cart change }
+          , [ CreateCart <| calculateCreateCartChange cart change ]
+          )
+        _ -> ( model, [] )
 
 updateCart : Model -> Api.Cart -> String -> Int -> (Model, List Effect)
 updateCart model cart productVariantId quantity =
@@ -448,7 +483,15 @@ shopView cart =
     , button [ E.onClick (addToCart testProductID) ] [ H.text "Add to cart"]
     ]
 
--- TODO: Add manual recovery from CreationFailed
+cartErrorView : Html Msg
+cartErrorView =
+  H.p []
+    [ H.text "Something unexpected happened."
+    , button
+        [ E.onClick Retry ]
+        [ H.text "Try Again" ]
+    ]
+
 remoteCartView : RemoteCart -> Bool -> Html Msg
 remoteCartView remoteCart isOpen =
   let
@@ -464,11 +507,15 @@ remoteCartView remoteCart isOpen =
         Loaded cart ->
           cartView cart
         CreationFailed ->
-          H.p [] [ H.text "Error" ]
+          -- TODO: Test this view for being able to retry
+          cartErrorView
         Updating cart change ->
           cartView cart
         Recreating cart change ->
           cartView cart
+        RecreationFailed _ _ ->
+          -- TODO: Test this view for being able to retry
+          cartErrorView
   in
     H.section
       [ A.class "fixed right-0 top-0 h-100 measure w-100 bg-white shadow-2"
