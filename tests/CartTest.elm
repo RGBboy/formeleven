@@ -507,6 +507,19 @@ And effects have Broadcast CartEvent.CheckoutStarted
 """ <|
         \_ ->
           let
+            cartState =
+              { subTotal = Helpers.moneyFromInt 1
+              , items =
+                  [ ( cartLineA.productVariant.id
+                    , { price = Helpers.moneyFromInt 1
+                      , productId = cartLineA.productVariant.product.id
+                      , productVariantId = cartLineA.productVariant.id
+                      , quantity = 1
+                      }
+                    )
+                  ]
+                  |> Dict.fromList
+              }
             result = modelCartWithSingleItemLoaded
               |> Cart.update Cart.Checkout
           in
@@ -517,7 +530,7 @@ And effects have Broadcast CartEvent.CheckoutStarted
                   >> List.member (Cart.StartCheckout cartWithSingleItem.checkoutUrl)
                   >> Expect.true "Expected list to contain StartCheckout"
               , Tuple.second
-                  >> List.member (Cart.Broadcast CartEvent.CheckoutStarted)
+                  >> List.member (Cart.Broadcast (CartEvent.CheckoutStarted cartState))
                   >> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutStarted"
               ]
               result

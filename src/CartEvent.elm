@@ -9,7 +9,7 @@ type CartEvent
   = CartCreated String
   | AddedToCart CartChange
   | RemovedFromCart CartChange
-  | CheckoutStarted
+  | CheckoutStarted CartState
   | CheckoutCompleted
 
 -- TODO: Figure out how best to surface IDs
@@ -26,6 +26,8 @@ type alias CartChange =
   { subTotal : Money
   , items : Dict String CartChangeItem
   }
+
+type alias CartState = CartChange
 
 -- These are encoded to work with Google's expected data structure
 encodeCartChangeItem : CartChangeItem -> Encode.Value
@@ -73,9 +75,10 @@ encode event =
         , ( "value", encodeCartChange change )
         ]
 
-    CheckoutStarted ->
+    CheckoutStarted cartState ->
       Encode.object
         [ ( "type", Encode.string "CheckoutStarted" )
+        , ( "value", encodeCartChange cartState )
         ]
 
     CheckoutCompleted ->

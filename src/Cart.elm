@@ -308,13 +308,15 @@ update msg model =
       case model.cart of
         Loaded cart ->
           let
-            quantity = cart.lines
-              |> List.map .quantity
-              |> List.sum
+            quantity = cartItemCount cart
+            cartState =
+              { subTotal = cart.subTotal
+              , items = cartToCartChangeItems cart
+              }
             effects =
               if quantity > 0 then
                 [ StartCheckout cart.checkoutUrl
-                , Broadcast CartEvent.CheckoutStarted
+                , Broadcast (CartEvent.CheckoutStarted cartState)
                 ]
               else
                 []
@@ -732,18 +734,12 @@ closeButton =
     -- TODO: Add aria attributes for screen readers
     [ H.text "×"]
 
-totalItemsOfCart : Api.Cart -> Int
-totalItemsOfCart cart =
-  cart.lines
-    |> List.map .quantity
-    |> List.sum
-
 cartButton : Maybe Api.Cart -> Html Msg
 cartButton cart =
   let
     totalItemsText =
       cart
-        |> Maybe.map totalItemsOfCart
+        |> Maybe.map cartItemCount
         |> Maybe.map (String.fromInt >> H.text)
         |> Maybe.withDefault (H.text "...")
   in
