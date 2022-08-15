@@ -1,11 +1,13 @@
 module Api exposing (..)
 
+import Decimal exposing (Decimal)
 import Dict exposing (Dict)
 import Graphql.Document as Document
 import Graphql.Http
 import Graphql.Operation exposing (RootMutation, RootQuery)
 import Graphql.OptionalArgument as OptionalArgument exposing (OptionalArgument(..))
 import Graphql.SelectionSet as SelectionSet exposing (SelectionSet)
+import Money exposing (Money)
 import Shopify.Enum.CurrencyCode as CurrencyCode
 import Shopify.InputObject as InputObject
 import Shopify.Mutation as Mutation
@@ -33,6 +35,16 @@ import Shopify.Union.Merchandise as Merchandise
 
 -- Utils
 
+transformDecimal : Shopify.ScalarCodecs.Decimal -> Result String Decimal
+transformDecimal value =
+  let
+    stringValue = value
+      |> unwrapDecimal
+  in
+    stringValue
+      |> Decimal.fromString
+      |> Result.fromMaybe ("Unable to parse \"" ++ stringValue ++ "\" as Decimal")
+
 unwrapDecimal : Shopify.ScalarCodecs.Decimal -> String
 unwrapDecimal wrapped =
   case wrapped of
@@ -49,12 +61,6 @@ unwrapUrl wrapped =
     Shopify.Scalar.Url value -> value
 
 -- Model
-
--- Eventually change this to preserve the types from the API
-type alias Money =
-  { amount: String
-  , currencyCode : String
-  }
 
 type alias Cart =
   { id : String
@@ -87,6 +93,7 @@ type alias Image =
 type alias ProductVariant =
   { id : String
   , image : Maybe Image
+  , price : Money
   , product : Product
   , quantityAvailable : Int
   }
@@ -128,7 +135,7 @@ linesInfoSelection =
 moneyV2Selection : SelectionSet Money Shopify.Object.MoneyV2
 moneyV2Selection =
   SelectionSet.succeed Money
-    |> SelectionSet.with (SelectionSet.map unwrapDecimal MoneyV2.amount)
+    |> SelectionSet.with (SelectionSet.mapOrFail transformDecimal MoneyV2.amount)
     |> SelectionSet.with (SelectionSet.map CurrencyCode.toString MoneyV2.currencyCode)
 
 cartCostSelection : SelectionSet Money Shopify.Object.CartCost
@@ -155,6 +162,7 @@ productVariantSelection =
   SelectionSet.succeed ProductVariant
     |> SelectionSet.with (SelectionSet.map unwrapId ProductVariant.id)
     |> SelectionSet.with (ProductVariant.image <| imageSelection 128 128)
+    |> SelectionSet.with (ProductVariant.priceV2 moneyV2Selection)
     |> SelectionSet.with (ProductVariant.product productInfoSelection)
     |> SelectionSet.with (SelectionSet.map (Maybe.withDefault 0) ProductVariant.quantityAvailable)
 

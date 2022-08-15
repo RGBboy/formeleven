@@ -10,6 +10,7 @@ import Html.Attributes as A
 import Html.Events as E
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
+import Money exposing (Money)
 
 -- MAIN
 
@@ -413,22 +414,118 @@ cartItemCount cart =
     |> List.map .quantity
     |> List.sum
 
+type alias CartDiff =
+  { additions : Maybe CartEvent.CartChange
+  , removals : Maybe CartEvent.CartChange
+  }
+
+cartToCartChangeItems : Api.Cart -> Dict String CartEvent.CartChangeItem
+cartToCartChangeItems cart =
+  cart.lines
+    |> List.map (\ line ->
+        ( line.productVariant.id
+        , { price = line.productVariant.price
+          , productId = line.productVariant.product.id
+          , productVariantId = line.productVariant.id
+          , quantity = line.quantity
+          }
+        )
+      )
+    |> Dict.fromList
+
+emptyCartDiff : CartDiff
+emptyCartDiff =
+  { additions = Nothing
+  , removals = Nothing
+  }
+
+cartChangeFromCartChangeItem : CartEvent.CartChangeItem -> CartEvent.CartChange
+cartChangeFromCartChangeItem item =
+  { subTotal = Money.mul item.price item.quantity
+  , items = Dict.singleton item.productVariantId item
+  }
+
+addDiffToExistingChange : CartEvent.CartChangeItem -> CartEvent.CartChange -> CartEvent.CartChange
+addDiffToExistingChange newItem existingChange =
+  { subTotal = Money.add existingChange.subTotal (Money.mul newItem.price newItem.quantity)
+  , items = Dict.insert newItem.productVariantId newItem existingChange.items
+  }
+
+diffCarts : Api.Cart -> Api.Cart -> CartDiff
+diffCarts oldCart newCart =
+  Dict.merge
+    -- left
+    (\ _ vl acc ->
+      { acc | removals =
+          acc.removals
+            |> Maybe.map (addDiffToExistingChange vl)
+            |> Maybe.withDefault (cartChangeFromCartChangeItem vl)
+            |> Just
+      }
+    )
+    -- both
+    (\ _ vl vr acc ->
+      if vl.quantity > vr.quantity then
+        -- removals
+        let
+          item =
+            { price = vl.price
+            , productId = vl.productId
+            , productVariantId = vl.productVariantId
+            , quantity = vl.quantity - vr.quantity
+            }
+          removals =
+            acc.removals
+              |> Maybe.map (addDiffToExistingChange item)
+              |> Maybe.withDefault (cartChangeFromCartChangeItem item)
+              |> Just
+        in
+          { acc | removals = removals }
+      else if vl.quantity < vr.quantity then
+        -- additions
+        let
+          item =
+            { price = vr.price
+            , productId = vr.productId
+            , productVariantId = vr.productVariantId
+            , quantity = vr.quantity - vl.quantity
+            }
+          additions =
+            acc.additions
+              |> Maybe.map (addDiffToExistingChange item)
+              |> Maybe.withDefault (cartChangeFromCartChangeItem item)
+              |> Just
+        in
+          { acc | additions = additions }
+      else
+        acc
+    )
+    -- right
+    (\ _ vr acc ->
+      { acc | additions =
+          acc.additions
+            |> Maybe.map (addDiffToExistingChange vr)
+            |> Maybe.withDefault (cartChangeFromCartChangeItem vr)
+            |> Just
+      }
+    )
+    (cartToCartChangeItems oldCart)
+    (cartToCartChangeItems newCart)
+    emptyCartDiff
+
 calculateCartChangeEvent : RemoteCart -> Api.Cart -> List Effect
 calculateCartChangeEvent remoteCart newCart =
-  let
-    newCartItemCount = cartItemCount newCart
-    existingCartItemCount =
-      remoteCart
-        |> getCart
-        |> Maybe.map cartItemCount
-        |> Maybe.withDefault 0
-
-  in
-    if newCartItemCount > existingCartItemCount then
-      [ Broadcast CartEvent.AddedToCart ]
-    else if newCartItemCount < existingCartItemCount then
-      [ Broadcast CartEvent.RemovedFromCart ]
-    else
+  case getCart remoteCart of
+    Just oldCart ->
+      let
+        cartDiff = diffCarts oldCart newCart
+      in
+        [ cartDiff.additions |> Maybe.map CartEvent.AddedToCart
+        , cartDiff.removals  |> Maybe.map CartEvent.RemovedFromCart
+        ]
+          |> List.filterMap identity
+          |> List.map Broadcast
+    Nothing ->
       []
 
 -- SUBSCRIPTIONS
@@ -477,6 +574,8 @@ shopView cart =
     , H.h1 [ A.class "f2 fw4" ] [ H.text "Shop View" ]
     , H.h2 [ A.class "f3 fw4"] [ H.text "Finn Lamp Shade" ]
     , button [ E.onClick (addToCart finnID) ] [ H.text "Add to cart"]
+    , H.h2 [ A.class "f3 fw4"] [ H.text "Finn Lamp Shade" ]
+    , button [ E.onClick (updateItemQuantityInCart finnID 3) ] [ H.text "Update to 3"]
     , H.h2 [ A.class "f3 fw4"] [ H.text "Light Sculpture" ]
     , button [ E.onClick (addToCart lightSculptureID) ] [ H.text "Add to cart"]
     , H.h2 [ A.class "f3 fw4"] [ H.text "Test Product" ]
@@ -545,7 +644,7 @@ cartFooter maybeCart =
         Just cart ->
           [ H.p [ A.class "" ]
               [ H.span [ A.class "" ] [ H.text "Subtotal:" ]
-              , H.span [ A.class "fr fw6" ] [ H.text <| formatGBP cart.subTotal.amount ]
+              , H.span [ A.class "fr fw6" ] [ H.text <| Money.toString cart.subTotal ]
               ]
           , H.p [ A.class "tc f6" ] [ H.text "Shipping and discount codes are added at checkout." ]
           , button
@@ -608,7 +707,7 @@ lineView { id, productVariant, quantity, subTotal } =
                   ]
                   [ H.text "+"]
               ]
-          , H.span [ A.class "dib fr fw6 pv2" ] [ H.text <| formatGBP subTotal.amount ]
+          , H.span [ A.class "dib fr fw6 pv2" ] [ H.text <| Money.toString subTotal ]
           ]
       ]
 
@@ -666,12 +765,6 @@ cartButton cart =
               ]
           ]
       ]
-
--- UTILS
-
-formatGBP : String -> String
-formatGBP value =
-  "£" ++ value ++ "0"
 
 -- TEMPORARY
 
