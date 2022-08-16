@@ -10,28 +10,28 @@ type CartEvent
   | AddedToCart CartChange
   | RemovedFromCart CartChange
   | CheckoutStarted CartState
-  | CheckoutCompleted
+  | CheckoutCompleted String CartState
 
 -- TODO: Figure out how best to surface IDs
 -- They should all follow the same convention to ensure that
 -- the various services we use can associate product correctly
-type alias CartChangeItem =
+type alias CartItem =
   { price : Money
   , productId : String
   , productVariantId : String
   , quantity : Int
   }
 
-type alias CartChange =
+type alias CartState =
   { subTotal : Money
-  , items : Dict String CartChangeItem
+  , items : Dict String CartItem
   }
 
-type alias CartState = CartChange
+type alias CartChange = CartState
 
 -- These are encoded to work with Google's expected data structure
-encodeCartChangeItem : CartChangeItem -> Encode.Value
-encodeCartChangeItem item =
+encodeItem : CartItem -> Encode.Value
+encodeItem item =
   Encode.object
     [ ( "item_id", Encode.string item.productId )
     , ( "price", Encode.float <| Decimal.toFloat item.price.amount )
@@ -40,19 +40,26 @@ encodeCartChangeItem item =
     ]
 
 -- These are encoded to work with Google's expected data structure
-encodeCartChange : CartChange -> Encode.Value
-encodeCartChange change =
+encodeEventValue : Maybe String -> CartChange -> Encode.Value
+encodeEventValue maybeTransactionId change =
   let
+    encodedTransactionId =
+      maybeTransactionId
+        |> Maybe.map (\ value -> ( "transaction_id", Encode.string value ))
+        |> Maybe.map List.singleton
+        |> Maybe.withDefault []
     items =
       change.items
         |> Dict.toList
         |> List.map Tuple.second
   in
-    Encode.object
+    List.append
       [ ( "currency", Encode.string change.subTotal.currencyCode )
       , ( "value", Encode.float <| Decimal.toFloat change.subTotal.amount )
-      , ( "items", Encode.list encodeCartChangeItem items )
+      , ( "items", Encode.list encodeItem items )
       ]
+      encodedTransactionId
+      |> Encode.object
 
 encode : CartEvent -> Encode.Value
 encode event =
@@ -66,22 +73,23 @@ encode event =
     AddedToCart change ->
       Encode.object
         [ ( "type", Encode.string "AddedToCart" )
-        , ( "value", encodeCartChange change )
+        , ( "value", encodeEventValue Nothing change )
         ]
 
     RemovedFromCart change ->
       Encode.object
         [ ( "type", Encode.string "RemovedFromCart" )
-        , ( "value", encodeCartChange change )
+        , ( "value", encodeEventValue Nothing change )
         ]
 
     CheckoutStarted cartState ->
       Encode.object
         [ ( "type", Encode.string "CheckoutStarted" )
-        , ( "value", encodeCartChange cartState )
+        , ( "value", encodeEventValue Nothing cartState )
         ]
 
-    CheckoutCompleted ->
+    CheckoutCompleted transactionId cartState ->
       Encode.object
         [ ( "type", Encode.string "CheckoutCompleted" )
+        , ( "value", encodeEventValue (Just transactionId) cartState )
         ]

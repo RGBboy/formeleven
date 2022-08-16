@@ -1026,8 +1026,29 @@ And effects have BroadCast CartEvent.CheckoutCompleted
 """ <|
         \_ ->
           let
+            transactionId = "transactionId"
+            cartState =
+              { subTotal = Helpers.moneyFromInt 11
+              , items =
+                  [ ( cartLineA.productVariant.id
+                    , { price = Helpers.moneyFromInt 1
+                      , productId = cartLineA.productVariant.product.id
+                      , productVariantId = cartLineA.productVariant.id
+                      , quantity = 1
+                      }
+                    )
+                  , ( cartLineB.productVariant.id
+                    , { price = Helpers.moneyFromInt 10
+                      , productId = cartLineB.productVariant.product.id
+                      , productVariantId = cartLineB.productVariant.id
+                      , quantity = 1
+                      }
+                    )
+                  ]
+                  |> Dict.fromList
+              }
             result = modelCartWithMultipleItemsLoaded
-              |> Cart.update (Cart.CheckoutCompleted)
+              |> Cart.update (Cart.CheckoutCompleted transactionId)
           in
             Expect.all
               [ Tuple.first
@@ -1037,7 +1058,7 @@ And effects have BroadCast CartEvent.CheckoutCompleted
                   >> List.member (Cart.CreateCart Dict.empty)
                   >> Expect.true "Expected list to contain Cart.CreateCart"
               , Tuple.second
-                  >> List.member (Cart.Broadcast CartEvent.CheckoutCompleted)
+                  >> List.member (Cart.Broadcast (CartEvent.CheckoutCompleted transactionId cartState))
                   >> Expect.true "Expected list to contain Broadcast CartEvent.CheckoutCompleted"
               ]
               result

@@ -213,7 +213,7 @@ type Msg
   | UpdateCart String Int
   | AddToCart String
   | Checkout
-  | CheckoutCompleted
+  | CheckoutCompleted String
   | Retry
 
 addToCart : String -> Msg
@@ -247,21 +247,26 @@ updateWithCmd msg model =
 update : Msg -> Model -> (Model, List Effect)
 update msg model =
   case msg of
+
     NoOpMsg -> (model, [])
+
     OpenCart ->
       ( { model | uiState = Open }
       , []
       )
+
     CloseCart ->
       ( { model | uiState = Closed }
       , []
       )
+
     CartCreated cart ->
       ( { model | cart = Loaded cart }
       , List.append
           [ Broadcast (CartEvent.CartCreated cart.id) ]
           (calculateCartChangeEvent model.cart cart)
       )
+
     CartCreationFailed ->
       let
         remoteCart = model.cart
@@ -272,14 +277,17 @@ update msg model =
         ( { model | cart = remoteCart }
         , []
         )
+
     CartLoaded cart ->
       ( { model | cart = Loaded cart }
       , []
       )
+
     CartLoadingFailed ->
       ( { model | cart = Loading }
       , [ CreateCart Dict.empty ]
       )
+
     AddToCart productVariantId ->
       case model.cart of
         Loaded cart ->
@@ -288,15 +296,18 @@ update msg model =
           in
             updateCart model cart productVariantId newQuantity
         _ -> (model, [])
+
     UpdateCart productVariantId newQuantity ->
       case model.cart of
         Loaded cart ->
           updateCart model cart productVariantId newQuantity
         _ -> (model, [])
+
     CartUpdated cart ->
       ( { model | cart = Loaded cart }
       , calculateCartChangeEvent model.cart cart
       )
+
     CartUpdateFailed ->
       case model.cart of
         Updating cart change ->
@@ -304,6 +315,7 @@ update msg model =
           , [ CreateCart <| calculateCreateCartChange cart change ]
           )
         _ -> (model, [])
+
     Checkout ->
       case model.cart of
         Loaded cart ->
@@ -311,7 +323,7 @@ update msg model =
             quantity = cartItemCount cart
             cartState =
               { subTotal = cart.subTotal
-              , items = cartToCartChangeItems cart
+              , items = cartToCartItems cart
               }
             effects =
               if quantity > 0 then
@@ -323,12 +335,26 @@ update msg model =
           in
             (model, effects)
         _ -> (model, [])
-    CheckoutCompleted ->
-      ( { model | cart = Loading }
-      , [ CreateCart Dict.empty
-        , Broadcast CartEvent.CheckoutCompleted
-        ]
-      )
+
+    CheckoutCompleted transactionId ->
+      case getCart model.cart of
+        Just cart ->
+          let
+            cartState =
+              { subTotal = cart.subTotal
+              , items = cartToCartItems cart
+              }
+          in
+            ( { model | cart = Loading }
+            , [ CreateCart Dict.empty
+              , Broadcast (CartEvent.CheckoutCompleted transactionId cartState )
+              ]
+            )
+        Nothing ->
+          ( { model | cart = Loading }
+          , [ CreateCart Dict.empty ]
+          )
+
     Retry ->
       case model.cart of
         CreationFailed ->
@@ -421,8 +447,8 @@ type alias CartDiff =
   , removals : Maybe CartEvent.CartChange
   }
 
-cartToCartChangeItems : Api.Cart -> Dict String CartEvent.CartChangeItem
-cartToCartChangeItems cart =
+cartToCartItems : Api.Cart -> Dict String CartEvent.CartItem
+cartToCartItems cart =
   cart.lines
     |> List.map (\ line ->
         ( line.productVariant.id
@@ -441,13 +467,13 @@ emptyCartDiff =
   , removals = Nothing
   }
 
-cartChangeFromCartChangeItem : CartEvent.CartChangeItem -> CartEvent.CartChange
-cartChangeFromCartChangeItem item =
+cartChangeFromCartItem : CartEvent.CartItem -> CartEvent.CartChange
+cartChangeFromCartItem item =
   { subTotal = Money.mul item.price item.quantity
   , items = Dict.singleton item.productVariantId item
   }
 
-addDiffToExistingChange : CartEvent.CartChangeItem -> CartEvent.CartChange -> CartEvent.CartChange
+addDiffToExistingChange : CartEvent.CartItem -> CartEvent.CartChange -> CartEvent.CartChange
 addDiffToExistingChange newItem existingChange =
   { subTotal = Money.add existingChange.subTotal (Money.mul newItem.price newItem.quantity)
   , items = Dict.insert newItem.productVariantId newItem existingChange.items
@@ -461,7 +487,7 @@ diffCarts oldCart newCart =
       { acc | removals =
           acc.removals
             |> Maybe.map (addDiffToExistingChange vl)
-            |> Maybe.withDefault (cartChangeFromCartChangeItem vl)
+            |> Maybe.withDefault (cartChangeFromCartItem vl)
             |> Just
       }
     )
@@ -479,7 +505,7 @@ diffCarts oldCart newCart =
           removals =
             acc.removals
               |> Maybe.map (addDiffToExistingChange item)
-              |> Maybe.withDefault (cartChangeFromCartChangeItem item)
+              |> Maybe.withDefault (cartChangeFromCartItem item)
               |> Just
         in
           { acc | removals = removals }
@@ -495,7 +521,7 @@ diffCarts oldCart newCart =
           additions =
             acc.additions
               |> Maybe.map (addDiffToExistingChange item)
-              |> Maybe.withDefault (cartChangeFromCartChangeItem item)
+              |> Maybe.withDefault (cartChangeFromCartItem item)
               |> Just
         in
           { acc | additions = additions }
@@ -507,12 +533,12 @@ diffCarts oldCart newCart =
       { acc | additions =
           acc.additions
             |> Maybe.map (addDiffToExistingChange vr)
-            |> Maybe.withDefault (cartChangeFromCartChangeItem vr)
+            |> Maybe.withDefault (cartChangeFromCartItem vr)
             |> Just
       }
     )
-    (cartToCartChangeItems oldCart)
-    (cartToCartChangeItems newCart)
+    (cartToCartItems oldCart)
+    (cartToCartItems newCart)
     emptyCartDiff
 
 calculateCartChangeEvent : RemoteCart -> Api.Cart -> List Effect
@@ -542,7 +568,8 @@ decodeTypeField : String -> Decoder Msg
 decodeTypeField value =
   case value of
     "CheckoutCompleted" ->
-      Decode.succeed CheckoutCompleted
+      Decode.at ["order", "transactionId"] Decode.string
+        |> Decode.map CheckoutCompleted
     _ ->
       Decode.fail <| "Unknown value '" ++ value ++ "' for field 'type'"
 

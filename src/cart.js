@@ -107,7 +107,7 @@ window.addEventListener("message", (msg) => {
   //     value: 0,
   //     currency: 'GBP',
   //     transactionId: '1035'
-  //   }
+  //   },
   //   orderData: {
   //     value: 0,
   //     currency: 'GBP',
