@@ -10,7 +10,7 @@ import String.Extra
 -- Perhaps move to use a JSON.Value for flags then decode to
 -- correctly handle input data and errors
 type alias Money =
-  { amount: String
+  { amount : String
   , currencyCode : String
   }
 

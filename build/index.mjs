@@ -41,6 +41,11 @@ const query = gql`
       nodes {
         id
         handle
+        variants (first: 1) {
+          nodes {
+            id
+          }
+        }
         title
         description
         descriptionHtml

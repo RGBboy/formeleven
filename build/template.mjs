@@ -41,8 +41,6 @@ const template = (title, description, body, gaProperty) =>
 
   <script type="module" src="/src/index.js"></script>
 
-  <script src="/frontend/buy-button-storefront.js"></script>
-
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script type="text/javascript" async src="https://www.googletagmanager.com/gtag/js?id=${gaProperty}"></script>
 

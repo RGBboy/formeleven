@@ -34,6 +34,7 @@ type alias Flags =
   { endpoint : String
   , token : String
   , cartId : Maybe String
+  , productVariantId : Maybe String
   }
 
 -- EFFECTS
@@ -166,6 +167,7 @@ type alias Model =
   { apiConfig : Api.Config
   , cart : RemoteCart
   , uiState : UIState
+  , productVariantId : Maybe String
   }
 
 -- INIT
@@ -181,12 +183,14 @@ initWithCmd flags =
     ( cart, cmd )
 
 init : Flags -> (Model, List Effect)
-init { endpoint, token, cartId } =
+init { endpoint, token, cartId, productVariantId } =
   let
     effects = cartId
       |> Maybe.map LoadCart
       |> Maybe.withDefault (CreateCart Dict.empty)
       |> List.singleton
+    maybeProductVariantId = productVariantId
+      |> Maybe.map (String.append "gid://shopify/ProductVariant/")
   in
   ( { apiConfig =
         { url = endpoint
@@ -194,6 +198,7 @@ init { endpoint, token, cartId } =
         }
     , cart = Loading
     , uiState = Closed
+    , productVariantId = maybeProductVariantId
     }
   , effects
   )
@@ -590,26 +595,24 @@ view model =
            remoteCartView model.cart False
          Open ->
            remoteCartView model.cart True
+    addToCartButton = model.productVariantId
+      |> Maybe.map buyButton
   in
-    H.div [ A.class "avenir", A.id "cart" ]
-      [ shopView (getCart model.cart)
-      , cartContent
-      ]
-
-shopView : Maybe Api.Cart -> Html Msg
-shopView cart =
-  H.section [ A.class "" ]
-    [ cartButton cart
-    , H.h1 [ A.class "f2 fw4" ] [ H.text "Shop View" ]
-    , H.h2 [ A.class "f3 fw4"] [ H.text "Finn Lamp Shade" ]
-    , button [ E.onClick (addToCart finnID) ] [ H.text "Add to cart"]
-    , H.h2 [ A.class "f3 fw4"] [ H.text "Finn Lamp Shade" ]
-    , button [ E.onClick (updateItemQuantityInCart finnID 3) ] [ H.text "Update to 3"]
-    , H.h2 [ A.class "f3 fw4"] [ H.text "Light Sculpture" ]
-    , button [ E.onClick (addToCart lightSculptureID) ] [ H.text "Add to cart"]
-    , H.h2 [ A.class "f3 fw4"] [ H.text "Test Product" ]
-    , button [ E.onClick (addToCart testProductID) ] [ H.text "Add to cart"]
+    [ addToCartButton
+    , Just <| cartButton (getCart model.cart)
+    , Just cartContent
     ]
+      |> List.filterMap identity
+      |> H.div [ A.class "avenir", A.id "cart" ]
+
+
+buyButton : String -> Html Msg
+buyButton id =
+  button
+    [ A.class "mt2"
+    , E.onClick (addToCart id)
+    ]
+    [ H.text "Add to cart"]
 
 cartErrorView : Html Msg
 cartErrorView =
@@ -788,30 +791,3 @@ cartButton cart =
               ]
           ]
       ]
-
--- TEMPORARY
-
-finnID : String
--- finnID = "7260086239427"
--- variant gid://shopify/ProductVariant/41819646623939
-finnID = "gid://shopify/ProductVariant/41819646623939"
-
-lightSculptureID : String
--- lightSculptureID = "7298460090563"
--- variant gid://shopify/ProductVariant/41915944763587
-lightSculptureID = "gid://shopify/ProductVariant/41915944763587"
-
-testProductID : String
-testProductID = "gid://shopify/ProductVariant/41980294922435"
-
--- gid://shopify/Cart/b7d0ca2201fc39f09818b9466ccc1a00
-
--- cart gid://shopify/Cart/1f96945c6997807c2b66812b8d102027
--- gid://shopify/Cart/41578ab8c241781a654823d14d75776a
-
--- cart with 10 Finn, 1 Light Sculpture
--- gid://shopify/Cart/546afca7e868f12bc644b9af3057bd0f
-
-
--- note: Adding more products than available when creating a cart will not add
--- them to the cart (they max out)

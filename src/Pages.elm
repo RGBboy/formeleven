@@ -6,6 +6,7 @@ import Html.Attributes as A
 import Html.Parser
 import Html.Parser.Util
 import Json.Decode as Decode exposing (Decoder)
+import Maybe.Extra
 import ProductData
 import ProductFeed exposing (ProductFeedData)
 import SiteMap
@@ -25,9 +26,13 @@ type alias ProductCollection =
   , products : ProductData.NodeList Product
   }
 
+type alias ProductVariant =
+  { id : String }
+
 type alias Product =
   { id : String
   , handle : String
+  , variants : ProductData.NodeList ProductVariant
   , title : String
   , description : String
   , descriptionHtml : String
@@ -87,9 +92,13 @@ isHtml file =
     ".html" -> True
     _ -> False
 
-localIdFromGlobalId : String -> String
-localIdFromGlobalId globalId =
+localProductIdFromGlobalProductId : String -> String
+localProductIdFromGlobalProductId globalId =
   String.replace "gid://shopify/Product/" "" globalId
+
+localProductVariantIdFromGlobalProductVariantId : String -> String
+localProductVariantIdFromGlobalProductVariantId globalId =
+  String.replace "gid://shopify/ProductVariant/" "" globalId
 
 productPathFromHandle : String -> String
 productPathFromHandle handle =
@@ -116,20 +125,30 @@ generateProductPage product =
   , page product.title (metaDescription product.description) (productPage product)
   )
 
+boolToMaybe : Bool -> Maybe ()
+boolToMaybe value =
+  case value of
+    True -> Just ()
+    False -> Nothing
+
 productPage : Product -> Html msg
 productPage product =
   let
-    localId = localIdFromGlobalId product.id
+    availableForSale = boolToMaybe product.availableForSale
+    buyButton = product.variants
+      |> ProductData.nodeListList
+      |> List.map .id
+      |> List.map localProductVariantIdFromGlobalProductVariantId
+      |> List.head
+      |> Maybe.Extra.next availableForSale
+      |> Maybe.map C.buyButton
+      |> Maybe.withDefault
+          ( H.div [ A.class "mv2" ]
+              [ C.soldOut
+              , C.cart
+              ]
+          )
     price = product.priceRange.maxVariantPrice.amount
-    buyButton =
-      case product.availableForSale of
-        True ->
-          C.buyButton localId
-        False ->
-          H.div [ A.class "mv2" ]
-            [ C.soldOut
-            , C.cart
-            ]
     titlePrice =
       [ H.h1 [ A.class "f3 fw4 mb2 mt4 mt2-ns measure" ] [ H.text product.title ]
       , H.p [ A.class "f3 fw2 mv2 measure" ] [ H.text <| C.formatGBP price ]
@@ -264,7 +283,7 @@ productListView products =
 productListItem : Product -> Html msg
 productListItem product =
   let
-    localId = localIdFromGlobalId product.id
+    localId = localProductIdFromGlobalProductId product.id
     price = product.priceRange.maxVariantPrice.amount
     productPath = productPathFromHandle product.handle
     href = "/frontend" ++ productPath
@@ -306,8 +325,7 @@ productListItem product =
 homePage : ProductCollection -> Html msg
 homePage collection =
   C.layout
-    [ H.div [ A.class "dn" ] [ C.buyButton "7322682851523" ] -- Test Buy Button
-    , C.section [ A.id "shop" ]
+    [ C.section [ A.id "shop" ]
         [ C.h2 [] [ H.text "Shop" ]
         , productListView <| ProductData.nodeListList collection.products
         , C.cart

@@ -22,6 +22,7 @@ flagsWithCartId =
   { endpoint = "endpoint"
   , token = "token"
   , cartId = Just cartId
+  , productVariantId = Just "ProductVariantId"
   }
 
 flagsWithoutCartId : Cart.Flags
@@ -29,6 +30,7 @@ flagsWithoutCartId =
   { endpoint = "endpoint"
   , token = "token"
   , cartId = Nothing
+  , productVariantId = Just "ProductVariantId"
   }
 
 apiConfig : Api.Config

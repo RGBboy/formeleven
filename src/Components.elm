@@ -229,20 +229,21 @@ iconInstagram =
 
 -- SHOPIFY
 buyButton : String -> Html msg
-buyButton localId =
+buyButton productVariantId =
   H.div
-    [ A.property "data-buy-button" (Encode.string localId)
+    [ A.id "buy-button"
+    , A.property "data-buy-button" (Encode.string productVariantId)
     , A.class "mv2"
     ] []
+
+cart : Html msg
+cart = H.div [ A.id "buy-button" ] []
 
 soldOut : Html msg
 soldOut =
   H.span
     [ A.class "dib f5 br3 pv2 ph3 white bg-black" ]
     [ H.text "Sold Out" ]
-
-cart : Html msg
-cart = H.div [ A.id "cart" ] []
 
 -- Currently price comes through with a single decimal place, hence adding a 0
 formatGBP : String -> String
