@@ -1,22 +1,20 @@
 import "dotenv/config";
 import { Elm } from "./Cart.elm";
+import { EventEmitter } from 'events';
 
 const endpoint = process.env.SHOPIFY_ENDPOINT;
 const token = process.env.SHOPIFY_ACCESS_TOKEN;
+
+const cartKey = "cartId";
+const localStorage = window.localStorage;
+
+const cartId = localStorage.getItem(cartKey);
 
 // User does not have a cart
 // const cartId = null;
 
 // User has a missing cart
 // const cartId = "gid://shopify/Cart/546afca7e868f12bc644b9af3057bd0";
-
-// User has an existing cart
-// const cartId = "gid://shopify/Cart/546afca7e868f12bc644b9af3057bd0f";
-
-const cartKey = "cartId";
-const localStorage = window.localStorage;
-
-const cartId = localStorage.getItem(cartKey);
 
 const checkoutWindowConfig = {
   width: 400,
@@ -38,10 +36,11 @@ const app = Elm.Cart.init({
 
 window.app = app;
 
+const eventEmitter = new EventEmitter();
+
 app.ports.events.subscribe((message) => {
-  console.log("Event", message);
-  if (message && message.type === "CartCreated") {
-    localStorage.setItem(cartKey, message.value);
+  if (message && message.type) {
+    eventEmitter.emit(message.type, message.value);
   };
 });
 
@@ -91,15 +90,6 @@ window.addEventListener("message", (msg) => {
   //     "current_checkout_page": "/checkout/thank_you"
   // }
 
-  // current thank_you page message with data
-  // {
-  //   orderData: {
-  //     value: 0,
-  //     currency: 'GBP',
-  //     transaction_id: '1035'
-  //   }
-  // }
-
   // new thank_you page message with data
   // {
   //   type: "CheckoutCompleted",
@@ -114,12 +104,6 @@ window.addEventListener("message", (msg) => {
   //     transaction_id: '1035'
   //   }
   // }
-
-  // if (data.orderData) {
-  //   trackPurchase(data.orderData);
-  //   // unfortunately we have to reload the page to reset the cart
-  //   location.reload();
-  // };
 });
 
 // The code below needs to be added to shopify settings
@@ -143,3 +127,79 @@ window.addEventListener("message", (msg) => {
 //   }), "*");
 // };
 // </script>
+
+
+// Conversion Tracking
+
+const analyticsPropertyId = process.env.GA_PROPERTY;
+const adsPropertyId = process.env.AW_PROPERTY;
+const addToBasketEventId = process.env.AW_ADD_TO_BASKET_EVENT_ID;
+const beginCheckoutEventId = process.env.AW_BEGIN_CHECKOUT_EVENT_ID;
+const purchaseEventId = process.env.AW_PURCHASE_EVENT_ID;
+
+const defaultConsent = {
+  ad_storage: "denied",
+  analytics_storage: "denied"
+};
+
+window.dataLayer = window.dataLayer || [];
+function gtag() { dataLayer.push(arguments); }
+
+// gtag("consent", "default", defaultConsent);
+
+gtag("js", new Date());
+
+gtag("config", analyticsPropertyId);
+
+if (adsPropertyId) {
+  gtag("config", adsPropertyId);
+};
+
+eventEmitter.on("CartCreated", (value) => {
+  localStorage.setItem(cartKey, value);
+});
+
+eventEmitter.on("AddedToCart", (value) => {
+  // Analytics
+  gtag("event", "add_to_cart", {
+    send_to: analyticsPropertyId,
+    ...value
+  });
+  // Google Ads
+  gtag("event", "conversion", {
+    send_to: `${adsPropertyId}/${addToBasketEventId}`
+  });
+});
+
+eventEmitter.on("RemovedFromCart", (value) => {
+  // Analytics
+  gtag("event", "remove_from_cart", {
+    send_to: analyticsPropertyId,
+    ...value
+  });
+});
+
+eventEmitter.on("CheckoutStarted", (value) => {
+  // Analytics
+  gtag("event", "begin_checkout", {
+    send_to: analyticsPropertyId,
+    ...value
+  });
+  // Google Ads
+  gtag("event", "conversion", {
+    send_to: `${adsPropertyId}/${beginCheckoutEventId}`
+  });
+});
+
+eventEmitter.on("CheckoutCompleted", (value) => {
+  // Analytics
+  gtag("event", "purchase", {
+    send_to: analyticsPropertyId,
+    ...value
+  });
+  // Google Ads
+  gtag("event", "conversion", {
+    send_to: `${adsPropertyId}/${beginCheckoutEventId}`,
+    ...value
+  });
+});

@@ -12,9 +12,6 @@ type CartEvent
   | CheckoutStarted CartState
   | CheckoutCompleted String CartState
 
--- TODO: Figure out how best to surface IDs
--- They should all follow the same convention to ensure that
--- the various services we use can associate product correctly
 type alias CartItem =
   { price : Money
   , productId : String
@@ -29,14 +26,34 @@ type alias CartState =
 
 type alias CartChange = CartState
 
--- These are encoded to work with Google's expected data structure
+localProductIdFromGlobalProductId : String -> String
+localProductIdFromGlobalProductId globalId =
+  String.replace "gid://shopify/Product/" "" globalId
+
+localProductVariantIdFromGlobalProductVariantId : String -> String
+localProductVariantIdFromGlobalProductVariantId globalId =
+  String.replace "gid://shopify/ProductVariant/" "" globalId
+
+-- These are encoded to work with Google Analytics expected data structure
 encodeItem : CartItem -> Encode.Value
 encodeItem item =
   Encode.object
-    [ ( "item_id", Encode.string item.productId )
-    , ( "price", Encode.float <| Decimal.toFloat item.price.amount )
-    , ( "quantity", Encode.int item.quantity )
-    , ( "item_variant", Encode.string item.productVariantId )
+    [ ( "item_id"
+      , item.productId
+          |> localProductIdFromGlobalProductId
+          |> Encode.string
+      )
+    , ( "price"
+      , item.price.amount
+          |> Decimal.toFloat
+          |> Encode.float
+      )
+    , ( "quantity", item.quantity |> Encode.int )
+    , ( "item_variant"
+      , item.productVariantId
+          |> localProductVariantIdFromGlobalProductVariantId
+          |> Encode.string
+      )
     ]
 
 -- These are encoded to work with Google's expected data structure
@@ -54,9 +71,13 @@ encodeEventValue maybeTransactionId change =
         |> List.map Tuple.second
   in
     List.append
-      [ ( "currency", Encode.string change.subTotal.currencyCode )
-      , ( "value", Encode.float <| Decimal.toFloat change.subTotal.amount )
-      , ( "items", Encode.list encodeItem items )
+      [ ( "currency", change.subTotal.currencyCode |> Encode.string )
+      , ( "value"
+        , change.subTotal.amount
+            |> Decimal.toFloat
+            |> Encode.float
+        )
+      , ( "items", items |> Encode.list encodeItem )
       ]
       encodedTransactionId
       |> Encode.object
