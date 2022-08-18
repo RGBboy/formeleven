@@ -37,8 +37,7 @@ export const createCart = (config) => {
     }
   });
 
-  // TEMP to be able to trigger events
-  // window.cart = cart;
+  window.cart = cart;
 
   cart.ports.events.subscribe((message) => {
     if (message && message.type) {
@@ -47,7 +46,6 @@ export const createCart = (config) => {
   });
 
   cart.ports.commands.subscribe((message) => {
-    console.log("Command", message);
     if (message && message.type === "Checkout") {
       window.open(
         message.url,

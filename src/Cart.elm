@@ -572,9 +572,17 @@ subscriptions =
 decodeTypeField : String -> Decoder Msg
 decodeTypeField value =
   case value of
+
+    "UpdateCart" ->
+      Decode.map2
+        UpdateCart
+        (Decode.field "id" Decode.string)
+        (Decode.field "quantity" Decode.int)
+
     "CheckoutCompleted" ->
       Decode.at ["order", "transactionId"] Decode.string
         |> Decode.map CheckoutCompleted
+
     _ ->
       Decode.fail <| "Unknown value '" ++ value ++ "' for field 'type'"
 
@@ -608,7 +616,7 @@ view model =
 
 buyButton : String -> Html Msg
 buyButton id =
-  button
+  buttonPrimary
     [ A.class "mt2"
     , E.onClick (addToCart id)
     ]
@@ -616,9 +624,9 @@ buyButton id =
 
 cartErrorView : Html Msg
 cartErrorView =
-  H.p []
-    [ H.text "Something unexpected happened."
-    , button
+  H.div [ A.class "ph3" ]
+    [ H.p [] [ H.text "Something unexpected happened while trying to update your cart."]
+    , buttonSecondarySmall
         [ E.onClick Retry ]
         [ H.text "Try Again" ]
     ]
@@ -679,7 +687,7 @@ cartFooter maybeCart =
               , H.span [ A.class "fr fw6" ] [ H.text <| Money.toString cart.subTotal ]
               ]
           , H.p [ A.class "tc f6" ] [ H.text "Shipping and discount codes are added at checkout." ]
-          , button
+          , buttonPrimary
               [ A.class "db w-100"
               , E.onClick checkout
               ]
@@ -750,10 +758,29 @@ button attributes =
   let
     newAttributes =
       List.append
-        [ A.class "f5 link dim mb2 bn br3 ph4 pv3 white bg-black pointer" ]
+        [ A.class "f5 link dim mb2 br3 pointer" ]
         attributes
   in
     H.button newAttributes
+
+buttonPrimary : List (Attribute msg) -> List (Html msg) -> Html msg
+buttonPrimary attributes =
+  attributes
+    |> List.append [ A.class "ph4 pv3 bg-black white bn" ]
+    |> button
+
+
+buttonSecondary : List (Attribute msg) -> List (Html msg) -> Html msg
+buttonSecondary attributes =
+  attributes
+    |> List.append [ A.class "ph4 pv3 bg-white black ba" ]
+    |> button
+
+buttonSecondarySmall : List (Attribute msg) -> List (Html msg) -> Html msg
+buttonSecondarySmall attributes =
+  attributes
+    |> List.append [ A.class "ph3 pv2 bg-white black ba" ]
+    |> button
 
 closeButton : Html Msg
 closeButton =
