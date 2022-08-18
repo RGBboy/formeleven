@@ -646,14 +646,12 @@ remoteCartView remoteCart isOpen =
         Loaded cart ->
           cartView cart
         CreationFailed ->
-          -- TODO: Test this view for being able to retry
           cartErrorView
         Updating cart change ->
           cartView cart
         Recreating cart change ->
           cartView cart
         RecreationFailed _ _ ->
-          -- TODO: Test this view for being able to retry
           cartErrorView
   in
     H.section
@@ -675,30 +673,39 @@ cartHeader =
     , closeButton
     ]
 
--- TODO: Disable checkout button if cart is empty
 cartFooter : Maybe Api.Cart -> Html Msg
 cartFooter maybeCart =
   let
     content =
       case maybeCart of
         Just cart ->
-          [ H.p [ A.class "" ]
-              [ H.span [ A.class "" ] [ H.text "Subtotal:" ]
-              , H.span [ A.class "fr fw6" ] [ H.text <| Money.toString cart.subTotal ]
-              ]
-          , H.p [ A.class "tc f6" ] [ H.text "Shipping and discount codes are added at checkout." ]
-          , buttonPrimary
-              [ A.class "db w-100"
-              , E.onClick checkout
-              ]
-              [ H.text "Checkout" ]
-          ]
+          let
+            checkoutButton = cart
+              |> cartItemCount
+              |> (\ count ->
+                  if count > 0 then
+                    buttonPrimary
+                      [ A.class "db w-100"
+                      , E.onClick checkout
+                      ]
+                      [ H.text "Checkout" ]
+                  else
+                    buttonPrimaryDisabled
+                      [ A.class "db w-100" ]
+                      [ H.text "Checkout" ]
+                )
+          in
+            [ H.p [ A.class "" ]
+                [ H.span [ A.class "" ] [ H.text "Subtotal:" ]
+                , H.span [ A.class "fr fw6" ] [ H.text <| Money.toString cart.subTotal ]
+                ]
+            , H.p [ A.class "tc f6" ] [ H.text "Shipping and discount codes are added at checkout." ]
+            , checkoutButton
+            ]
         Nothing ->
           []
   in
     H.div [ A.class "self-end w-100 ph3"] content
-
-
 
 cartView : Api.Cart -> Html Msg
 cartView cart =
@@ -721,7 +728,6 @@ imageView image =
     ]
     []
 
--- TODO: disable + button if quantity available is reached
 lineView : Api.CartLine -> Html Msg
 lineView { id, productVariant, quantity, subTotal } =
   let
@@ -729,6 +735,15 @@ lineView { id, productVariant, quantity, subTotal } =
       |> Maybe.map imageView
       |> Maybe.withDefault
           (H.div [ A.class "dib w3 h3 bg-light-gray" ] [])
+    addButtonAttributes =
+      if productVariant.quantityAvailable > quantity then
+        [ A.class "ba br2 br--right pa2 dim pointer dib w2 tc b bg-white"
+        , E.onClick (updateItemQuantityInCart productVariant.id (quantity + 1))
+        ]
+      else
+        [ A.class "ba br2 br--right pa2 dib w2 tc b bg-white o-30"
+        , A.disabled True
+        ]
   in
     H.div [ A.class "flex mb3" ]
       [ H.span [ A.class "db pa0" ] [ image ]
@@ -741,11 +756,7 @@ lineView { id, productVariant, quantity, subTotal } =
                   ]
                   [ H.text "–"]
               , H.span [ A.class "bt bb pa2 dib w2 tc" ] [ H.text <| String.fromInt quantity ]
-              , H.a
-                  [ A.class "ba br2 br--right pa2 dim pointer dib w2 tc b bg-white"
-                  , E.onClick (updateItemQuantityInCart productVariant.id (quantity + 1))
-                  ]
-                  [ H.text "+"]
+              , H.a addButtonAttributes [ H.text "+"]
               ]
           , H.span [ A.class "dib fr fw6 pv2" ] [ H.text <| Money.toString subTotal ]
           ]
@@ -758,7 +769,7 @@ button attributes =
   let
     newAttributes =
       List.append
-        [ A.class "f5 link dim mb2 br3 pointer" ]
+        [ A.class "f5 link mb2 br3" ]
         attributes
   in
     H.button newAttributes
@@ -766,20 +777,25 @@ button attributes =
 buttonPrimary : List (Attribute msg) -> List (Html msg) -> Html msg
 buttonPrimary attributes =
   attributes
-    |> List.append [ A.class "ph4 pv3 bg-black white bn" ]
+    |> List.append [ A.class "dim pointer ph4 pv3 bg-black white bn" ]
     |> button
 
+buttonPrimaryDisabled : List (Attribute msg) -> List (Html msg) -> Html msg
+buttonPrimaryDisabled attributes =
+  attributes
+    |> List.append [ A.disabled True, A.class "ph4 pv3 bg-black white bn o-30" ]
+    |> button
 
 buttonSecondary : List (Attribute msg) -> List (Html msg) -> Html msg
 buttonSecondary attributes =
   attributes
-    |> List.append [ A.class "ph4 pv3 bg-white black ba" ]
+    |> List.append [ A.class "dim pointer ph4 pv3 bg-white black ba" ]
     |> button
 
 buttonSecondarySmall : List (Attribute msg) -> List (Html msg) -> Html msg
 buttonSecondarySmall attributes =
   attributes
-    |> List.append [ A.class "ph3 pv2 bg-white black ba" ]
+    |> List.append [ A.class "dim pointer ph3 pv2 bg-white black ba" ]
     |> button
 
 closeButton : Html Msg
